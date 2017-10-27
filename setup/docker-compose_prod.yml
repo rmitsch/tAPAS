@@ -1,0 +1,50 @@
+version: "3.3"
+
+# Source: https://stackoverflow.com/questions/30848670/how-to-customize-the-configuration-file-of-the-official-postgresql-docker-image
+services:   
+  # Container for application.
+  topac:
+    image: rmitsch/tapas
+    # Expose Flask's default port under 2397.
+    ports:
+      - "2397:5000"
+    networks:
+      - tapas-network
+    depends_on:
+      - "db"
+  # Container for postgres DB.
+  db:
+    image: postgres:9.6.1
+    # Expose DB under :8001.
+    ports:
+      - "8001:5432"     
+     # Make Postgres log to a file.
+     # Tune configuration here.
+    command: postgres -c shared_buffers=3GB -c effective_cache_size=6GB -c work_mem=100MB -c log_min_error_statement=error -c log_statement='none' -c log_min_duration_statement=-1
+    environment:
+      # Set superuser name.
+      - POSTGRES_USER=admin
+      # Provide the password via an environment variable. If the variable is unset or empty, use a default password
+      - POSTGRES_PASSWORD=password
+      # Create database.
+      - POSTGRES_DB=topac
+      # If on a non-Linux OS, make sure you share the drive used here. Go to Docker's settings -> Shared Drives
+    volumes:
+      # Persist the data between container invocations
+      - postgresVolume:/var/lib/postgresql/data
+      #- ./logs:/logs
+    networks:
+      topac-network:
+        # Our application can communicate with the database using this hostname
+        aliases:
+        - tapasPostgres
+
+# Create network.           
+networks:
+  topac-network:
+    driver: bridge    
+
+# Creates a named volume to persist our data. When on a non-Linux OS, the volume's data will be in the Docker VM
+# (e.g., MobyLinuxVM) in /var/lib/docker/volumes/
+volumes:
+  postgresVolume:
