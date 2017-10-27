@@ -1,0 +1,39 @@
+# .git and .cache folders.
+.git
+.cache
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# All files in /data, but not the filder itself.
+data/*
+
+# Pycharm files.
+source/.idea/
+
+# Virtual python environment.
+py3env
+
+# DB log files.
+logs
+
+# Intermediate files.
+*.npz
+*.hdf5
+*.hd5

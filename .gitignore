@@ -99,3 +99,23 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# Tutorial
+/tutorial
+
+# Pycharm files.
+source/.idea/
+.idea/
+
+# Virtual python environment.
+py3env
+
+# DB log files.
+logs
+
+# Dolphin files.
+.directory
+
+# No gensim-produced files.
+*.mm
+*.dict
