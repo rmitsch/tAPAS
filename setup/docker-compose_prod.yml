@@ -34,14 +34,14 @@ services:
       - postgresVolume:/var/lib/postgresql/data
       #- ./logs:/logs
     networks:
-      topac-network:
+      tapas-network:
         # Our application can communicate with the database using this hostname
         aliases:
         - tapasPostgres
 
 # Create network.           
 networks:
-  topac-network:
+  tapas-network:
     driver: bridge    
 
 # Creates a named volume to persist our data. When on a non-Linux OS, the volume's data will be in the Docker VM
