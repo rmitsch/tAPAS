@@ -1,0 +1,27 @@
+sudo: required
+dist: trusty
+install:
+- docker version
+- sudo pip install docker-compose
+- docker-compose version
+before_script:
+- docker-compose -f docker-compose_dev.yml up --build -d
+- docker ps -a
+script:
+- docker ps | grep -q paella
+after_script:
+- docker-compose down
+after_success:
+- docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+- export REPO=rmitsch/PAELLA
+- export LOCAL_IMAGE_NAME=paella_paella
+- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
+- docker tag $LOCAL_IMAGE_NAME $REPO:$TAG
+- docker tag $LOCAL_IMAGE_NAME $REPO:travis-$TRAVIS_BUILD_NUMBER
+- docker push $REPO
+env:
+  global:
+  - COMMIT=${TRAVIS_COMMIT::8}
+  - secure: k9Vx91bRnGxmUeyYE9CnrNpdXz69S2AZ9lMBNsoCRIajOx8uA+LLksmxamgAWq9tGl9Q1DoTlpuX4xjzScteVsZnyrVw+MiMJ1qxRJE8LoGA4wuvgQ+ixCezxi7cpUmCvDCIWJ+2mcIF/epcWSAHgL3lIoeaEucwA0mNKsRvrV0wLdxwbiOGcKv7eLbrfStv8VfyJkpZybLh1BnzNgDx6WBF1SUxl0byjCtBLY9oiiASEZjH3H7ECrcCq/JEsePLjAjXNlqQ0sjNT721HjN+jjIqj1Ea9VAAHHYp9JVRgKN/U56LRI6AY/IXi9+zzY1O2IoqlY0cuYCKQv3EQykt4GuvVPNCGgm78g5NUgZpaB606FIcNw+BZShzi06FsL/WcloUPKJw568C0V2UFxscog6sSMtm4oh2h0opA5WaopC5PWG2YZdHaTZSetXuyyDTmiw30leWFfh3WYhDhuqcpkxkz/r49vkew56L4qGwhOlfVeRe0JwvlWVg6kxuDYPNAVjezAbZsbFQa1xZ3buN/OVSeWSf4ojAnYzMM3zy3Uh3ZVRZ73vh7JJJWRh7VrY4TrfFVFe7xCXOso7vn0xtyG7v2oL8ur8/WQNfkuPWEpPN4WPU7Y204lXFu+V1KfWMfpB3JddWt36pT9MziHRFKxfAAZEaI49KXz2fGDCcuZI= # DOCKER_MAIL
+  - secure: J+QdmoYUMsjlRn7OEwp3Hf1m3BGQ5vPXYhTlWFfYcitTqUO1C14/Va1f7Rd0UKCdzC6vjtH6NpXfC59WKm1DFnhsXXQs5zusW5QdOOXgXi9N2ApMb++eelCzqk9k3YaVtfRTAOJHmSPy+DTmSL7LMIySa/H1fWYoKucaIx8AQp6BoEHwe2ZxF8RmdREkLZGnIMzyeNgUIsBeANUqCjlt81pmKB264HeawSG444CPzGVr10YxRcPTVoGgS3dwoiJjTDKM0eoI01pea5Aq9GC5QnVE/temtea4vBwFZ5wrvWZU57U1HCU3w4XqCZCern1/ohcKn8MQNJP26flJDBkHpL00Fq/58GvVhlPFpFZLD0cPK3tTAREBP5W60V7Uie0WA4jBeShJT2ltvtK3wc0pTbPZeuyA+M6uI5+80Igs05zVmJwyPHLT6ypgwC7DLkkBMuPxXBHD20ndG6otYccQD7xwLbYD1MQ0CTfx2JPZjN7/Ub3MLuYHIFbDja+MsyDVD582Edqn1OCs8W28/NHYtCirgR2iAGSQb0YtnWVM3rGJPcfv6fDnArJ40B/oy+HTBnw4Z+aXJCyTVWcyxZ/kAkw72you82LmUoFB1m5ZESgZzAID8Q73oyv25uR+pJkCMIdHot9kPMhic6xD1O6uGfee5Oj2hrtggOv91PnL3r0= # DOCKER_USER
+  - secure: ckzWufbkgy+CX0AC7YSSZdV+kFc5usJvOdFGhg0tBeEda21U7ZaM+TTCasabq01CJaC6g3C3w3P2MTPkuB6DapXXNgOYaNe0H3FVGelcEtg36kSblJRakld9z+6qOwNvWIbSQyEXH/Z9lP8Ie9CZAr5R/n1gx1mTY7nthstGc/F72VS0jC3hkMdaa/flSVzjD5/9XDGz5q2wcTQi5PZLBvxLRkowNN3K4kibvMKsQtUsKT3mpbZqKuj9qje6D1KYWGhGVd6vbZ0Xeg4tkShwF+t5sDXXQnMb3oEAYmDkVhqIxXJq5pp/80DxbXJautsTc9tURIaGS0Zl7yElAOtkrLgNEPhvA20pjK8/zoMcRH8w16pq1sMzWgR1N57GgXOs+Wsy+dNhA6LJn/9R1Z74ZknByIGTA5lZYBI6xZ1xUw5dUq5jzms5FMG16wD6HD1TTxSH/6pUv4SwTP+OaFPsxrD5OIjTWLa10Ha9k+dBaA196iVDlOZNvCa2m0Gbuxi7PvFhia3L9Ln3a/TWuXNXdTexjcCfWHi2wEZKAj/C1yS92PF7ZjXiyhUbJ7y62FKyX8492AwcTohbh96aLp8hXkUQPCNJCSLe/zbIkgPVNilEnFN2nLL+aClVCUxKpGoNHOxLkAuBYBo875pPDl3X8dwi/KBWfEgGiLZxI4VBbBo= # DOCKER_PASS
