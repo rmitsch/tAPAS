@@ -1,46 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Link to stylesheet.
-    <link rel="stylesheet" href="style.css">
-    -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>tAPAS</title>
-    <link rel="stylesheet" href="./static/lib/css//bootstrap.min.css">
-    <link rel="stylesheet" href="./static/lib/css/keen-dashboards.css">
+
+
+    <link rel="stylesheet" href="./static/lib/css/pure-1.0.0/pure-min.css">
     <link rel="stylesheet" href="./static/lib/css/dc.css">
-    <link rel="stylesheet" href="./static/css/custom.css">
+    <link rel="stylesheet" href="./static/custom.css">
+    <link rel="stylesheet" type="text/css" href="./static/lib/js/slick-1.8/slick/slick.css"/>
+    <link rel="stylesheet" type="text/css" href="./static/lib/js/slick-1.8/slick/slick-theme.css"/>
 
     <link rel="icon"
       type="image/png"
       href="./static/img/icon.png">
     </head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
-<body class="application">
+<body >
+    <div>
+        <div class="header">
+            <div class="pure-menu pure-menu-horizontal">
+                <a class="pure-menu-heading" href="/">tAPAS</a>
 
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-        <div class="container-fluid">
-          <div class="navbar-header">
-            <a class="navbar-brand" href="./"><img src="./static/img/icon.png" id='title_icon' alt="tAPAS" width="20">tAPAS | {{ version }}</a>
-          </div>
+                <ul class="pure-menu-list">
+                    <li class="pure-menu-item" id="menu_about" onclick="updateCarousel('menu_about')">
+                        <a href="#about" class="pure-menu-link">About</a>
+                    </li>
+                    <li class="pure-menu-item" id="menu_upload" onclick="updateCarousel('menu_upload')">
+                        <a href="#upload" class="pure-menu-link">Upload dataset</a>
+                    </li>
+                    <li class="pure-menu-item" id="menu_createrun" onclick="updateCarousel('menu_createrun')">
+                        <a href="#createrun" class="pure-menu-link">Create run</a>
+                    </li>
+                    <li class="pure-menu-item" id="menu_run" onclick="updateCarousel('menu_run')">
+                        <a href="#run" class="pure-menu-link">Start/continue run</a>
+                    </li>
+                </ul>
+            </div>
         </div>
+
+        <div class="carousel">
+            <div class="carouselElement">
+                <h2 class="splash-head">About</h2>
+                <i><b>t</b>-SNE: <b>A</b>ssisted <b>P</b>arameter optimization by <b>A</b>pproximating neighbourhood <b>S</b>imilarity</b></i>
+                <div class="splash-text">
+                    Tool for hyperparameter optimization for dimensionality reduction with t-SNE in the context of word
+                    embeddings.<br/>
+                    To start an optimization run, conduct the following two steps:
+                    <ul>
+                        <li><i>Upload dataset</i> for uploading a new word vector file and </li>
+                        <li><i>Create new run</i> in order to set options for a new run (initial hyperparameter settings etc.). </li>
+                    </ul>
+                    If an already existing optimization run is to be continued, these steps are not necessary - in this case
+                    skip forward to <i>Start/continue run</i>.
+                </div>
+                <a href="#upload" class="pure-button pure-button-primary">Get started with new dataset</a>
+            </div>
+            <div class="carouselElement">upload dataset</div>
+            <div class="carouselElement">create run</div>
+            <div class="carouselElement">run</div>
+        </div>
+
     </div>
 
-    <div id="fileupload_container">
-        <form id = "uploadbanner" method = "post" enctype="multipart/form-data" action = "upload">
-            <input type="file" name="file" id="file" onchange="this.form.submit()" class="inputfile" action="#"/>
-            <label for="file" id="upload_label">
-                <img src="./static/img/spreadsheet.png" alt="Mountain View" width="50">
-                <br/>Upload spreadsheet
-            </label>
-        </form>
-    </div>
+    <!-- JS -->
 
     <script src="./static/lib/js/jquery.min.js"></script>
-    <script src="./static/lib/js/bootstrap.min.js"></script>
     <script src="./static/lib/js/queue.js"></script>
-    <script src="./static/lib/js/keen.min.js"></script>
+    <script src="./static/lib/js/slick-1.8/slick/slick.min.js"></script>
+    <!-- Reading env. variables needed in JS is done here, since for whatever reason a separate script can't process
+     jinja variable information. -->
+    <script>
+        var entrypoint = '{{ entrypoint }}';
+    </script>
+    <!-- Initialization of slick carousel. -->
+    <script type="text/javascript" src="./static/slick_init.js"></script>
 
 </body>
 </html>

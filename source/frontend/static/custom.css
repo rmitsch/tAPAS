@@ -1,0 +1,93 @@
+div.header {
+    background-color: #3d4a57;
+}
+
+a.pure-menu-heading {
+    color: #fff;
+    font-weight: bold;
+}
+
+a.pure-menu-link {
+    color: #fff;
+    font-size:small;
+}
+
+li.pure-menu-item.pure-menu-selected a.pure-menu-link {
+    color: #3d4a57;
+    font-weight: bold;
+}
+
+.pure-menu-active > .pure-menu-link, .pure-menu-link:focus, .pure-menu-link:hover,
+li.pure-menu-item.pure-menu-selected a.pure-menu-link:focus, li.pure-menu-item.pure-menu-selected a.pure-menu-link:hover {
+    color: #3d4a57;
+}
+
+li.pure-menu-item.pure-menu-selected {
+    background-color: #eee;
+}
+
+
+/* Hide file input button. */
+/* https://tympanus.net/codrops/2015/09/15/styling-customizing-file-inputs-smart-way/ */
+.inputfile {
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+
+/* Center text in upload label. */
+#upload_label {
+    text-align: center;
+}
+
+/* Style file input label. */
+/* https://tympanus.net/codrops/2015/09/15/styling-customizing-file-inputs-smart-way/ */
+.inputfile + label {
+    /* 20px */
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    display: inline-block;
+    overflow: hidden;
+    padding: 0.625rem 1.25rem;
+    /* 10px 20px */
+}
+
+.carousel {
+    text-align: center;
+    margin: auto;
+    width: 75%;
+    margin-top: 50px;
+
+    padding-bottom: 25px;
+}
+
+.splash-text {
+    margin-top: 10px;
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+.splash-text > ul {
+  display: inline-block;
+  text-align: left;
+}
+
+.slick-prev:before, .slick-next:before {
+    color: #0078e7 !important;
+}
+
+.carouselElement {
+    text-align: center;
+}
+
+.slick-slide {
+    padding-left: 0px;
+    padding-right: 0px;
+    margin-left: 50px;
+    margin-right: 50px;
+}
