@@ -61,7 +61,7 @@ li.pure-menu-item.pure-menu-selected {
     text-align: center;
     margin: auto;
     width: 65%;
-    margin-top: 50px;
+    margin-top: 20px;
 
     padding-bottom: 25px;
 }
@@ -101,4 +101,30 @@ ul.listAbout li {
 .tapasGithubButtonDiv {
     margin-top:10px;
     text-align: center;
+}
+
+.navIconImage {
+    position: relative;
+    top: 4px;
+}
+
+a.pure-menu-heading {
+    text-transform: none;
+}
+
+.slick-dotted.slick-slider {
+    margin-bottom: 0px;
+}
+
+form#uploadbanner {
+    margin-top: 0px;
+    text-align: center;
+}
+
+label#upload_label img {
+    display: inline-block;
+}
+
+div.carousel.slick-initialized.slick-slider.slick-dotted {
+    padding-bottom: 0px;
 }

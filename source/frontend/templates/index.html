@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="./static/custom.css">
     <link rel="stylesheet" type="text/css" href="./static/lib/js/slick-1.8/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="./static/lib/js/slick-1.8/slick/slick-theme.css"/>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
 
     <link rel="icon" type="image/png" href="./static/img/icon.png">
 
@@ -22,20 +23,20 @@
     <div>
         <div class="header">
             <div class="pure-menu pure-menu-horizontal">
-                <a class="pure-menu-heading" href="/">tAPAS</a>
+                <a class="pure-menu-heading" href="/"> <img src="./static/img/icon_white.png" class="navIconImage" alt="tAPAS" width="20px"> tAPAS</a>
 
                 <ul class="pure-menu-list">
+                    <li class="pure-menu-item" id="menu_start" onclick="updateCarousel('menu_start')">
+                        <a href="#menu_about" class="pure-menu-link">Getting started</a>
+                    </li>
                     <li class="pure-menu-item" id="menu_upload" onclick="updateCarousel('menu_upload')">
-                        <a href="#upload" class="pure-menu-link">Upload dataset</a>
+                        <a href="#menu_upload" class="pure-menu-link">Upload dataset</a>
                     </li>
                     <li class="pure-menu-item" id="menu_createrun" onclick="updateCarousel('menu_createrun')">
-                        <a href="#createrun" class="pure-menu-link">Create new run</a>
+                        <a href="#menu_createrun" class="pure-menu-link">Create new run</a>
                     </li>
                     <li class="pure-menu-item" id="menu_run" onclick="updateCarousel('menu_run')">
-                        <a href="#run" class="pure-menu-link">Run optimization</a>
-                    </li>
-                    <li class="pure-menu-item" id="menu_about" onclick="updateCarousel('menu_about')">
-                        <a href="#about" class="pure-menu-link">About</a>
+                        <a href="#menu_run" class="pure-menu-link">Run optimization</a>
                     </li>
                 </ul>
             </div>
@@ -43,16 +44,7 @@
 
         <div class="carousel">
             <div class="carouselElement">
-                <h2 class="splash-head">Upload Dataset</h2>
-            </div>
-            <div class="carouselElement">
-                <h2 class="splash-head">Create New Run</h2>
-            </div>
-            <div class="carouselElement">
-                <h2 class="splash-head">Run optimization</h2>
-            </div>
-            <div class="carouselElement">
-                <h2 class="splash-head">About</h2>
+                <h2 class="splash-head">Getting started</h2>
                 <div class="splash-text">
                     <i><b>t</b>-SNE: <b>A</b>ssisted <b>P</b>arameter optimization by <b>A</b>pproximating neighbourhood <b>S</b>imilarity</b></i>.
                     <br/><br/>This is a tool for hyperparameter optimization of dimensionality reduction with t-SNE in the context of word
@@ -60,19 +52,107 @@
                     run. Use the navigation and/or the arrows to move through the setup process.
                     <br/><br/> It applies Bayesian optimization utilizing visual evaluation through the user and a variety of
                     coranking-matrix based measures (trustworthiness, continuity, LCMC) as well as measurements of relative
-                    worde embedding information loss in lower-dimensional spaces to assess the quality of a t-SNE parametrization.
-                    <div class="tapasGithubButtonDiv">
-                        <a href="https://github.com/rmitsch/tapas" class="pure-button pure-button-primary">tAPAS on github</a>
-                    </div>
-                    <br/><br/>Related links and references to some used libraries and papers:<br/>
+                    word embedding information loss in lower-dimensional spaces to assess the quality of a t-SNE parametrization.
+                    <br/><br/>
+                    <hr>
+                    <br/>Related links and references to some used libraries and papers:<br/>
                     <ul class="listAbout">
+                        <li><a href="https://github.com/rmitsch/tapas" class="pure-button pure-button-primary">tAPAS on github</a></li>
                         <li><a href="http://jmlr.org/papers/v9/vandermaaten08a.html" class="pure-button pure-button-primary">t-SNE paper by van der Maaten & Hinton</a></li></li>
                         <li><a href="https://github.com/fmfn/BayesianOptimization" class="pure-button pure-button-primary">Bayesian Optimization in Python</a></li></li>
                         <li><a href="https://github.com/kudkudak/word-embeddings-benchmarks" class="pure-button pure-button-primary">Benchmarks for word embedding models</a></li></li>
                         <li><a href="https://github.com/samueljackson92/coranking" class="pure-button pure-button-primary">Implementation of coranking matrix-based dimensionality reduction quality measures</a></li></li>
                     </ul>
+                </div>
+            </div>
+            <div class="carouselElement">
+                <h2 class="splash-head">Upload Dataset</h2>
+                <div class="splash-text">
+                    <div id="fileupload_container">
+                        <form id = "uploadbanner" method = "post" enctype="multipart/form-data" action = "upload">
+                            <input type="file" name="file" id="file" onchange="this.form.submit()" class="inputfile" action="#"/>
+                            <label for="file" id="upload_label">
+                                <img src="./static/img/spreadsheet.png" alt="Choose file" width="50">
+                                <br/>Choose file
+                            </label>
+                        </form>
+                    </div>
+
+                    The uploaded dataset has to fulfill the following conditions:
+                    <ul>
+                        <li>All entries have to have the same number of dimensions.</li>
+                        <li>Words have to be sorted by their in-corpus frequency descendingly.</li>
+                        <li>File's columns have to be comma-separated (i. e. file has to be a CSV).</li>
+                    </ul>
+                    <br/>Example for column sequence pattern:<br/><br/>
+                    <table class="pure-table">
+                        <thead>
+                            <tr>
+                                <th>Word</th>
+                                <th>Value for dimension #1</th>
+                                <th>Value for dimension #2</th>
+                                <th>...</th>
+                                <th>Value for dimension #n</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td>Day</td>
+                                <td>344.332</td>
+                                <td>6632.243</td>
+                                <td>...</td>
+                                <td>0.433</td>
+                            </tr>
+                            <tr>
+                                <td>...</td>
+                                <td>...</td>
+                                <td>...</td>
+                                <td>...</td>
+                                <td>...</td>
+                            </tr>
+                            <tr>
+                                <td>Zeta</td>
+                                <td>63.4323</td>
+                                <td>991.234</td>
+                                <td>...</td>
+                                <td>344.23</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br/>The corresponding file would hence look like <i>Aardvark,344.332,...</i>.
 
                 </div>
+            </div>
+            <div class="carouselElement">
+                <h2 class="splash-head">Create New Run</h2>
+                <div class="splash-text">
+                    In order to create a new run, you have to set values for the initial parameters, weight the available
+                    measures so that the tool can come up with an aggregated scalar for the models' quality and finally
+                    pick the dataset you want to apply t-SNE on.
+                    <h4>Dataset</h4>
+                    <select>
+                        <option value="volvo">Volvo</option>
+                        <option value="saab">Saab</option>
+                        <option value="mercedes">Mercedes</option>
+                        <option value="audi">Audi</option>
+                    </select>
+                    <h4>Initial Parameters</h4>
+                    <div class="pure-g">
+                        <div class="pure-u-1-3">
+                            <div id="slider1"></div>
+                        </div>
+                        <div class="pure-u-1-3">
+                            <div id="slider2"></div>
+                        </div>
+                        <div class="pure-u-1-3">
+                            <div id="slider3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carouselElement">
+                <h2 class="splash-head">Run optimization</h2>
             </div>
         </div>
 
@@ -81,12 +161,16 @@
     <!-- JS -->
 
     <script src="./static/lib/js/jquery.min.js"></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="./static/lib/js/queue.js"></script>
     <script src="./static/lib/js/slick-1.8/slick/slick.min.js"></script>
     <!-- Reading env. variables needed in JS is done here, since for whatever reason a separate script can't process
      jinja variable information. -->
     <script>
         var entrypoint = '{{ entrypoint }}';
+        $( "#slider1" ).slider();
+        $( "#slider2" ).slider();
+        $( "#slider3" ).slider();
     </script>
     <!-- Initialization of slick carousel. -->
     <script type="text/javascript" src="./static/slick_init.js"></script>

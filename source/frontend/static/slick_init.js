@@ -1,4 +1,4 @@
-menuIDs = ["menu_upload", "menu_createrun", "menu_run", "menu_about"]
+menuIDs = ["menu_start", "menu_upload", "menu_createrun", "menu_run"]
 
 function updateCarousel(menuItemID)
 {
@@ -23,23 +23,33 @@ $(document).ready(function(){
         arrows: true,
         centerMode: true,
         dots: true,
-        fade: false,
-        swipe: true,
+        fade: true,
+        swipe: false,
         infinite: true,
         speed: 200
     });
 
-    // Always init with "About" as selected menu point.
-    document.getElementById("menu_about").classList.add('pure-menu-selected');
+    // Find out which element should be selected after page load.
+    var setAnchor = window.location.hash.substring(1);
+    var selectedMenuItemID = $.inArray(setAnchor, menuIDs) > -1 ? setAnchor : "menu_start";
 
-    // Move carousel to panel 'About'.
-    $('.carousel').slick('slickGoTo', menuIDs.indexOf("menu_about"));
+    // Always init with "Start" as selected menu point.
+    document.getElementById(selectedMenuItemID).classList.add('pure-menu-selected');
+
+    // Move carousel to panel 'Start'.
+    $('.carousel').slick('slickGoTo', menuIDs.indexOf(selectedMenuItemID));
 
     // Change navigation when slide changes via carousel.
     $('.carousel').on('beforeChange', function(event, slick, currentSlideIndex, nextSlideIndex) {
         window.location.hash = menuIDs[nextSlideIndex];
         updateCarousel(menuIDs[nextSlideIndex]);
     });
+
+//    NEXT UP:
+//        x Icon in nav bar.
+//        - Description and forms for !=about pages
+//        - Test form data submission
+//        - Construct dashboard layout
 
 //    CONTINUE HERE:
 //        - Add selected class if selected; join menu and carousel navigation, finetune.
