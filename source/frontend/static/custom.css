@@ -60,16 +60,17 @@ li.pure-menu-item.pure-menu-selected {
 .carousel {
     text-align: center;
     margin: auto;
-    width: 75%;
+    width: 65%;
     margin-top: 50px;
 
     padding-bottom: 25px;
 }
 
 .splash-text {
-    margin-top: 10px;
-    margin-bottom: 30px;
+    margin-top: 30px;
+    margin-bottom: 40px;
     text-align: left;
+    font-size:14px;
 }
 
 .splash-text > ul {
@@ -90,4 +91,14 @@ li.pure-menu-item.pure-menu-selected {
     padding-right: 0px;
     margin-left: 50px;
     margin-right: 50px;
+}
+
+ul.listAbout li {
+    margin-bottom: 5px;
+    list-style-type: none;
+}
+
+.tapasGithubButtonDiv {
+    margin-top:10px;
+    text-align: center;
 }

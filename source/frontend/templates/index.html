@@ -13,10 +13,7 @@
     <link rel="stylesheet" type="text/css" href="./static/lib/js/slick-1.8/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="./static/lib/js/slick-1.8/slick/slick-theme.css"/>
 
-    <link rel="icon"
-      type="image/png"
-      href="./static/img/icon.png">
-    </head>
+    <link rel="icon" type="image/png" href="./static/img/icon.png">
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
@@ -28,17 +25,17 @@
                 <a class="pure-menu-heading" href="/">tAPAS</a>
 
                 <ul class="pure-menu-list">
-                    <li class="pure-menu-item" id="menu_about" onclick="updateCarousel('menu_about')">
-                        <a href="#about" class="pure-menu-link">About</a>
-                    </li>
                     <li class="pure-menu-item" id="menu_upload" onclick="updateCarousel('menu_upload')">
                         <a href="#upload" class="pure-menu-link">Upload dataset</a>
                     </li>
                     <li class="pure-menu-item" id="menu_createrun" onclick="updateCarousel('menu_createrun')">
-                        <a href="#createrun" class="pure-menu-link">Create run</a>
+                        <a href="#createrun" class="pure-menu-link">Create new run</a>
                     </li>
                     <li class="pure-menu-item" id="menu_run" onclick="updateCarousel('menu_run')">
-                        <a href="#run" class="pure-menu-link">Start/continue run</a>
+                        <a href="#run" class="pure-menu-link">Run optimization</a>
+                    </li>
+                    <li class="pure-menu-item" id="menu_about" onclick="updateCarousel('menu_about')">
+                        <a href="#about" class="pure-menu-link">About</a>
                     </li>
                 </ul>
             </div>
@@ -46,24 +43,37 @@
 
         <div class="carousel">
             <div class="carouselElement">
-                <h2 class="splash-head">About</h2>
-                <i><b>t</b>-SNE: <b>A</b>ssisted <b>P</b>arameter optimization by <b>A</b>pproximating neighbourhood <b>S</b>imilarity</b></i>
-                <div class="splash-text">
-                    Tool for hyperparameter optimization for dimensionality reduction with t-SNE in the context of word
-                    embeddings.<br/>
-                    To start an optimization run, conduct the following two steps:
-                    <ul>
-                        <li><i>Upload dataset</i> for uploading a new word vector file and </li>
-                        <li><i>Create new run</i> in order to set options for a new run (initial hyperparameter settings etc.). </li>
-                    </ul>
-                    If an already existing optimization run is to be continued, these steps are not necessary - in this case
-                    skip forward to <i>Start/continue run</i>.
-                </div>
-                <a href="#upload" class="pure-button pure-button-primary">Get started with new dataset</a>
+                <h2 class="splash-head">Upload Dataset</h2>
             </div>
-            <div class="carouselElement">upload dataset</div>
-            <div class="carouselElement">create run</div>
-            <div class="carouselElement">run</div>
+            <div class="carouselElement">
+                <h2 class="splash-head">Create New Run</h2>
+            </div>
+            <div class="carouselElement">
+                <h2 class="splash-head">Run optimization</h2>
+            </div>
+            <div class="carouselElement">
+                <h2 class="splash-head">About</h2>
+                <div class="splash-text">
+                    <i><b>t</b>-SNE: <b>A</b>ssisted <b>P</b>arameter optimization by <b>A</b>pproximating neighbourhood <b>S</b>imilarity</b></i>.
+                    <br/><br/>This is a tool for hyperparameter optimization of dimensionality reduction with t-SNE in the context of word
+                    embeddings. You can either upload a new dataset, start a new run on an uploaded dataset or proceed an existing
+                    run. Use the navigation and/or the arrows to move through the setup process.
+                    <br/><br/> It applies Bayesian optimization utilizing visual evaluation through the user and a variety of
+                    coranking-matrix based measures (trustworthiness, continuity, LCMC) as well as measurements of relative
+                    worde embedding information loss in lower-dimensional spaces to assess the quality of a t-SNE parametrization.
+                    <div class="tapasGithubButtonDiv">
+                        <a href="https://github.com/rmitsch/tapas" class="pure-button pure-button-primary">tAPAS on github</a>
+                    </div>
+                    <br/><br/>Related links and references to some used libraries and papers:<br/>
+                    <ul class="listAbout">
+                        <li><a href="http://jmlr.org/papers/v9/vandermaaten08a.html" class="pure-button pure-button-primary">t-SNE paper by van der Maaten & Hinton</a></li></li>
+                        <li><a href="https://github.com/fmfn/BayesianOptimization" class="pure-button pure-button-primary">Bayesian Optimization in Python</a></li></li>
+                        <li><a href="https://github.com/kudkudak/word-embeddings-benchmarks" class="pure-button pure-button-primary">Benchmarks for word embedding models</a></li></li>
+                        <li><a href="https://github.com/samueljackson92/coranking" class="pure-button pure-button-primary">Implementation of coranking matrix-based dimensionality reduction quality measures</a></li></li>
+                    </ul>
+
+                </div>
+            </div>
         </div>
 
     </div>

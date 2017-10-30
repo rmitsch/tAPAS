@@ -1,12 +1,15 @@
-menuIDs = ["menu_about", "menu_upload", "menu_createrun", "menu_run"]
+menuIDs = ["menu_upload", "menu_createrun", "menu_run", "menu_about"]
 
 function updateCarousel(menuItemID)
 {
     for(var i = 0; i < menuIDs.length; i++) {
         document.getElementById(menuIDs[i]).classList.remove('pure-menu-selected');
     }
-    //document.getElementById(menuIDs.indexOf(menuItemID))).classList.add('pure-menu-selected');
 
+    // Set selected class for currently selected menu item.
+    document.getElementById(menuItemID).classList.add('pure-menu-selected');
+
+    // Move carousel to panel of selected item.
     $('.carousel').slick('slickGoTo', menuIDs.indexOf(menuItemID));
 }
 
@@ -22,19 +25,26 @@ $(document).ready(function(){
         dots: true,
         fade: false,
         swipe: true,
-        infinite: false
+        infinite: true,
+        speed: 200
     });
 
-    for(var i = 0; i < menuIDs.length; i++) {
-        document.getElementById("menu_" + entrypoint).classList.remove('pure-menu-selected');
-    }
-    CONTINUE HERE:
-        - Add selected class if selected; join menu and carousel navigation, finetune.
-        - Add forms for t-SNE runs.
-        - Implement layout for dashboard.
-    NOTE: Use same approach/framework for PAELLA!
-    document.getElementById("menu_" + window.location.hash).classList.add('pure-menu-selected');
+    // Always init with "About" as selected menu point.
+    document.getElementById("menu_about").classList.add('pure-menu-selected');
 
-    //alert(window.location.hash);
+    // Move carousel to panel 'About'.
+    $('.carousel').slick('slickGoTo', menuIDs.indexOf("menu_about"));
+
+    // Change navigation when slide changes via carousel.
+    $('.carousel').on('beforeChange', function(event, slick, currentSlideIndex, nextSlideIndex) {
+        window.location.hash = menuIDs[nextSlideIndex];
+        updateCarousel(menuIDs[nextSlideIndex]);
+    });
+
+//    CONTINUE HERE:
+//        - Add selected class if selected; join menu and carousel navigation, finetune.
+//        - Add forms for t-SNE runs.
+//        - Implement layout for dashboard.
+
 });
 
