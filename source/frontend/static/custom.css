@@ -1,3 +1,11 @@
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
 div.header {
     background-color: #3d4a57;
 }
@@ -60,8 +68,8 @@ li.pure-menu-item.pure-menu-selected {
 .carousel {
     text-align: center;
     margin: auto;
-    width: 65%;
-    margin-top: 20px;
+    width: 75%;
+    margin-top: 40px;
 
     padding-bottom: 25px;
 }
@@ -103,6 +111,10 @@ ul.listAbout li {
     text-align: center;
 }
 
+a.pure-menu-heading {
+    padding-top: 3px;
+}
+
 .navIconImage {
     position: relative;
     top: 4px;
@@ -127,4 +139,106 @@ label#upload_label img {
 
 div.carousel.slick-initialized.slick-slider.slick-dotted {
     padding-bottom: 0px;
+}
+
+#initialParameterGrid .pure-u-1-6 {
+    margin-bottom:0px;
+    margin-left:10px;
+    margin-right:10px;
+    position: relative;
+}
+
+.ui-slider.ui-corner-all.ui-slider-horizontal.ui-widget.ui-widget-content {
+    height: 4px;
+}
+
+span.ui-slider-handle.ui-corner-all.ui-state-default {
+    width:5px;
+}
+
+span.parameterLabel {
+    display: block;
+    font-style: italic;
+}
+
+span.ui-slider-handle.ui-corner-all.ui-state-default {
+    margin-left: 0px;
+}
+
+.datasetSelect {
+    margin-bottom: 10px;
+}
+
+.irs-line, .irs-bar, .irs-bar-edge {
+    height: 8px;
+}
+
+.newRunParameterHistograms {
+    display: inline-block;
+    postion: relative;
+    top: 0px;
+}
+
+div#initialParameterGrid span.irs-with-grid, div#measureWeightGrid span.irs-with-grid {
+    top: -36px;
+}
+
+div#initialParameterGrid div.styled-select {
+    position: relative;
+    top: -10px;
+}
+
+#measureWeightGrid .pure-u-1-6 {
+    margin-bottom:0px;
+    margin-left:10px;
+    margin-right:10px;
+    position: relative;
+}
+
+div.splash-text div.pure-g input {
+    position: relative;
+    top: -9px;
+    width: 100%;
+}
+
+a.pure-button {
+    background-color: #3d4a57;
+}
+
+#nrph1 {
+    width: 125px;
+}
+
+div#datasetSelect {
+    width: 125px;
+    height: 29px;
+    margin-bottom: 10px;
+}
+
+div#datasetSelect.styled-select.default.semi-square {
+    position: relative;
+    top: -9px;
+}
+
+#createRunButton {
+    margin-bottom: 20px;
+}
+
+div.splash-text div.pure-g input.nrpStepper {
+    position: absolute;
+    width: 35px;
+    top: -6px;
+    right: 0px;
+}
+
+#measureWeightGrid {
+    height: 75px;
+}
+
+#nprDatasetHeader {
+    margin-bottom: 0px;
+}
+
+#initialParameterGrid {
+    height: 235px;
 }

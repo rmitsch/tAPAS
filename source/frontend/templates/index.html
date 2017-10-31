@@ -7,12 +7,18 @@
     <title>tAPAS</title>
 
 
-    <link rel="stylesheet" href="./static/lib/css/pure-1.0.0/pure-min.css">
-    <link rel="stylesheet" href="./static/lib/css/dc.css">
-    <link rel="stylesheet" href="./static/custom.css">
-    <link rel="stylesheet" type="text/css" href="./static/lib/js/slick-1.8/slick/slick.css"/>
-    <link rel="stylesheet" type="text/css" href="./static/lib/js/slick-1.8/slick/slick-theme.css"/>
+    <link rel="stylesheet" href="./static/lib/pure-1.0.0/pure-min.css">
+    <link rel="stylesheet" href="./static/lib/dc.css">
+    <link rel="stylesheet" type="text/css" href="./static/lib/slick-1.8/slick/slick.css"/>
+    <link rel="stylesheet" type="text/css" href="./static/lib/slick-1.8/slick/slick-theme.css"/>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="./static/lib/ion_rangeslider/css/normalize.css" />
+    <link rel="stylesheet" href="./static/lib/ion_rangeslider/css/ion.rangeSlider.css" />
+    <link rel="stylesheet" href="./static/lib/ion_rangeslider/css/ion.rangeSlider.skinFlat.css" />
+    <link rel="stylesheet" href="./static/lib/c3-0.4.18/c3.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="./static/custom.css">
+    <link rel="stylesheet" href="./static/dropdown.css">
 
     <link rel="icon" type="image/png" href="./static/img/icon.png">
 
@@ -68,17 +74,7 @@
             <div class="carouselElement">
                 <h2 class="splash-head">Upload Dataset</h2>
                 <div class="splash-text">
-                    <div id="fileupload_container">
-                        <form id = "uploadbanner" method = "post" enctype="multipart/form-data" action = "upload">
-                            <input type="file" name="file" id="file" onchange="this.form.submit()" class="inputfile" action="#"/>
-                            <label for="file" id="upload_label">
-                                <img src="./static/img/spreadsheet.png" alt="Choose file" width="50">
-                                <br/>Choose file
-                            </label>
-                        </form>
-                    </div>
-
-                    The uploaded dataset has to fulfill the following conditions:
+                    The uploaded dataset has to fulfill the following conditions:<br/>
                     <ul>
                         <li>All entries have to have the same number of dimensions.</li>
                         <li>Words have to be sorted by their in-corpus frequency descendingly.</li>
@@ -120,8 +116,17 @@
                             </tr>
                         </tbody>
                     </table>
-                    <br/>The corresponding file would hence look like <i>Aardvark,344.332,...</i>.
-
+                    <br/>The corresponding file would hence look like <i>Aardvark,344.332,...</i>.<br/><br/><hr><br/>
+                    <div id="fileupload_container">
+                        <form id = "uploadbanner" method = "post" enctype="multipart/form-data" action = "upload">
+                            <input type="file" name="file" id="file" onchange="this.form.submit()" class="inputfile" action="#"/>
+                            <label for="file" id="upload_label">
+                                <img src="./static/img/spreadsheet.png" alt="Choose file" width="50">
+                                <br/>
+                                <a class="pure-button pure-button-primary">Choose file</a>
+                            </label>
+                        </form>
+                    </div>
                 </div>
             </div>
             <div class="carouselElement">
@@ -130,26 +135,130 @@
                     In order to create a new run, you have to set values for the initial parameters, weight the available
                     measures so that the tool can come up with an aggregated scalar for the models' quality and finally
                     pick the dataset you want to apply t-SNE on.
-                    <h4>Dataset</h4>
-                    <select>
-                        <option value="volvo">Volvo</option>
-                        <option value="saab">Saab</option>
-                        <option value="mercedes">Mercedes</option>
-                        <option value="audi">Audi</option>
-                    </select>
-                    <h4>Initial Parameters</h4>
-                    <div class="pure-g">
-                        <div class="pure-u-1-3">
-                            <div id="slider1"></div>
+                    <h4 id="nprDatasetHeader">Dataset</h4>
+                    <div class="newRunParameterHistograms" id="nrph1"></div>
+                    <div class="styled-select default semi-square" id="datasetSelect">
+                        <select class="datasetSelect">
+                            <option value="volvo">Volvo</option>
+                            <option value="saab">Saab</option>
+                            <option value="mercedes">Mercedes</option>
+                            <option value="audi">Audi</option>
+                        </select>
+                    </div>
+                    <hr>
+                    <h4>Initial Hyperparameters</h4>
+                    <div class="pure-g" id="initialParameterGrid">
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">Dimensions</span>
+                            <input class="nrpStepper" id="stepper_numdim" type="number" value="0" step="1" min="0"/>
+                            <div class="newRunParameterHistograms" id="nrph2"></div>
+                            <input type="text" id="slider1" value="" name="slider1" />
                         </div>
-                        <div class="pure-u-1-3">
-                            <div id="slider2"></div>
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">Perplexity</span>
+                            <input class="nrpStepper" id="stepper_perplexity" type="number" value="0" step="1" min="0"/>
+                            <div class="newRunParameterHistograms" id="nrph3"></div>
+                            <input type="text" id="slider2" value="" name="slider2" />
                         </div>
-                        <div class="pure-u-1-3">
-                            <div id="slider3"></div>
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">Early exagg.</span>
+                            <input class="nrpStepper" id="stepper_earlyExxageration" type="number" value="0" step="1" min="0"/>
+                            <div class="newRunParameterHistograms" id="nrph4"></div>
+                            <input type="text" id="slider3" value="" name="slider3" />
+                        </div>
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">Learning rate</span>
+                            <input class="nrpStepper" id="stepper_learningRate" type="number" value="0" step="1" min="0"/>
+                            <div class="newRunParameterHistograms" id="nrph5"></div>
+                            <input type="text" id="slider4" value="" name="slider4" />
+                        </div>
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">Iterations</span>
+                            <input class="nrpStepper" id="stepper_iterations" type="number" value="0" step="1" min="0"/>
+                            <div class="newRunParameterHistograms" id="nrph6"></div>
+                            <input type="text" id="slider5" value="" name="slider5" />
+                        </div>
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">Min grad norm</span>
+                            <input class="nrpStepper" id="stepper_minGradNorm" type="number" value="0" step="1" min="0"/>
+                            <div class="newRunParameterHistograms" id="nrph7"></div>
+                            <input type="text" id="slider6" value="" name="slider6" />
+                        </div>
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">Random state</span>
+                            <input class="nrpStepper" id="stepper_randomState" type="number" value="0" step="1" min="0"/>
+                            <div class="newRunParameterHistograms" id="nrph8"></div>
+                            <input type="text" id="slider7" value="" name="slider7" />
+                        </div>
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">Angle</span>
+                            <input class="nrpStepper" id="stepper_angle" type="number" value="0" step="1" min="0"/>
+                            <div class="newRunParameterHistograms" id="nrph9"></div>
+                            <input type="text" id="slider8" value="" name="slider8" />
+                        </div>
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">Metric</span>
+                            <div class="newRunParameterHistograms" id="nrph10"></div>
+                            <div class="styled-select default semi-square">
+                                <select>
+                                    <option value="volvo">Volvo</option>
+                                    <option value="saab">Saab</option>
+                                    <option value="mercedes">Mercedes</option>
+                                    <option value="audi">Audi</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">Initialization method</span>
+                            <div class="newRunParameterHistograms" id="nrph11"></div>
+                            <div class="styled-select default semi-square">
+                                <select>
+                                    <option value="volvo">Volvo</option>
+                                    <option value="saab">Saab</option>
+                                    <option value="mercedes">Mercedes</option>
+                                    <option value="audi">Audi</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <h4>Measure Weights</h4>
+                    <div class="pure-g" id="measureWeightGrid">
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">Trustworthiness</span>
+                            <input class="nrpStepper" id="stepper_measureTrustworthiness" type="number" value="0" step="1" min="0"/>
+                            <div class="newRunParameterHistograms" id="nrph12"></div>
+                            <input type="text" id="slider9" value="" name="slider9" />
+                        </div>
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">Continuity</span>
+                            <input class="nrpStepper" id="stepper_measureContinuity" type="number" value="0" step="1" min="0"/>
+                            <div class="newRunParameterHistograms" id="nrph13"></div>
+                            <input type="text" id="slider10" value="" name="slider10" />
+                        </div>
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">LCMC</span>
+                            <input class="nrpStepper" id="stepper_measureLCMC" type="number" value="0" step="1" min="0"/>
+                            <div class="newRunParameterHistograms" id="nrph14"></div>
+                            <input type="text" id="slider11" value="" name="slider11" />
+                        </div>
+                        <div class="pure-u-1-6">
+                            <span class="parameterLabel">Class. acc.</span>
+                            <input class="nrpStepper" id="stepper_generalizationAccuracy" type="number" value="0" step="1" min="0"/>
+                            <div class="newRunParameterHistograms" id="nrph15"></div>
+                            <input type="text" id="slider12" value="" name="slider12" />
+                        </div>
+                        <div class="pure-u-1-6">
+                            <span title="Word embedding quality calculated using various measures in the low-dimensional space compared to model quality in original space."
+                                  class="parameterLabel">Relative WE-Q</span>
+                            <input class="nrpStepper" id="stepper_relativeWEQuality" type="number" value="0" step="1" min="0"/>
+                            <div class="newRunParameterHistograms" id="nrph16"></div>
+                            <input type="text" id="slider13" value="" name="slider13" />
                         </div>
                     </div>
                 </div>
+                <hr><br/>
+                <a class="pure-button pure-button-primary" id="createRunButton">Create run</a>
             </div>
             <div class="carouselElement">
                 <h2 class="splash-head">Run optimization</h2>
@@ -158,22 +267,29 @@
 
     </div>
 
-    <!-- JS -->
+    <!-- Include JS files. -->
 
-    <script src="./static/lib/js/jquery.min.js"></script>
-    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="./static/lib/js/queue.js"></script>
-    <script src="./static/lib/js/slick-1.8/slick/slick.min.js"></script>
+    <script src="./static/lib/jquery.min.js"></script>
+    <script src="./static/lib/jquery-ui-1.2.1.js"></script>
+    <script src="./static/lib/queue.js"></script>
+    <script src="./static/lib/slick-1.8/slick/slick.min.js"></script>
+    <script src="./static/lib/ion_rangeslider/js/ion.rangeSlider.min.js"></script>
     <!-- Reading env. variables needed in JS is done here, since for whatever reason a separate script can't process
      jinja variable information. -->
     <script>
         var entrypoint = '{{ entrypoint }}';
-        $( "#slider1" ).slider();
-        $( "#slider2" ).slider();
-        $( "#slider3" ).slider();
     </script>
+
+    <!-- Load d3.js and c3.js -->
+    <script src="./static/lib/d3.v3.js" charset="utf-8"></script>
+    <script src="./static/lib/c3-0.4.18/c3.min.js"></script>
+
+    <!-- Initialization of sliders. -->
+    <script type="text/javascript" src="./static/slider_init.js"></script>
     <!-- Initialization of slick carousel. -->
     <script type="text/javascript" src="./static/slick_init.js"></script>
+    <!-- Setup of initial parameter histograms. -->
+    <script type="text/javascript" src="./static/initialParameterHistograms.js"></script>
 
 </body>
 </html>
