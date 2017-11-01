@@ -183,10 +183,11 @@ div#initialParameterGrid span.irs-with-grid, div#measureWeightGrid span.irs-with
     top: -36px;
 }
 
-div#initialParameterGrid div.styled-select {
+div#initialParameterGrid div.styled-select  {
     position: relative;
     top: -10px;
 }
+
 
 #measureWeightGrid .pure-u-1-6 {
     margin-bottom:0px;
@@ -203,6 +204,7 @@ div.splash-text div.pure-g input {
 
 a.pure-button {
     background-color: #3d4a57;
+    color: #fff;
 }
 
 #nrph1 {
@@ -241,4 +243,40 @@ div.splash-text div.pure-g input.nrpStepper {
 
 #initialParameterGrid {
     height: 235px;
+}
+
+#runopt_datasetChoice div.styled-select {
+    position: relative;
+    top: -9px;
+}
+
+div.ui-dialog-titlebar {
+    background: #3d4a57;
+    color: #fff;
+}
+
+#runopt_choiceControls {
+    width: 300px;
+    margin: auto;
+    text-align: left;
+}
+
+#runopt_dialog a.pure-button {
+    margin-top: 10px;
+}
+
+.runopt_optionContainer {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.runopt_optionContainerSub {
+    display: inline-block;
+    width: 45%;
+    vertical-align: middle;
+    margin-bottom: 10px;
+}
+
+.maxWidth a {
+    width: 100%;
 }

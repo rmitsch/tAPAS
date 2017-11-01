@@ -25,7 +25,7 @@ $(document).ready(function(){
         dots: true,
         fade: true,
         swipe: false,
-        infinite: true,
+        infinite: false,
         speed: 200
     });
 
@@ -44,17 +44,6 @@ $(document).ready(function(){
         window.location.hash = menuIDs[nextSlideIndex];
         updateCarousel(menuIDs[nextSlideIndex]);
     });
-
-//    NEXT UP:
-//        x Icon in nav bar.
-//        - Description and forms for !=about pages
-//        - Test form data submission
-//        - Construct dashboard layout
-
-//    CONTINUE HERE:
-//        - Add selected class if selected; join menu and carousel navigation, finetune.
-//        - Add forms for t-SNE runs.
-//        - Implement layout for dashboard.
 
 });
 

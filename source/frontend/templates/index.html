@@ -260,8 +260,48 @@
                 <hr><br/>
                 <a class="pure-button pure-button-primary" id="createRunButton">Create run</a>
             </div>
-            <div class="carouselElement">
+            <div class="carouselElement" id="runopt_carouselElement">
                 <h2 class="splash-head">Run optimization</h2>
+                <div class="splash-text">
+
+                    Select the configuration you want to run. If it's a new one, you'll start with the initial model based on
+                    hyperparameter settings you chose. If it's an existing one, you'll proceed at the latest iteration.
+                    <br/><br/><hr/>
+
+                    <div id="runopt_choiceControls">
+                        <div>
+                            <div class="runopt_optionContainerSub"><b>Dataset</b></div>
+                            <div class="runopt_optionContainerSub">
+                                <div class="newRunParameterHistograms" id="nrph17"></div>
+                                <div class="styled-select default semi-square">
+                                    <select>
+                                        <option value="volvo">Volvo</option>
+                                        <option value="saab">Saab</option>
+                                        <option value="mercedes">Mercedes</option>
+                                        <option value="audi">Audi</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="runopt_optionContainerSub"><b>Run</b></div>
+                            <div class="runopt_optionContainerSub">
+                                <div class="styled-select default semi-square">
+                                    <select>
+                                        <option value="volvo">Volvo</option>
+                                        <option value="saab">Saab</option>
+                                        <option value="mercedes">Mercedes</option>
+                                        <option value="audi">Audi</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="maxWidth">
+                            <a href="https://github.com/rmitsch/tapas" class="pure-button pure-button-primary">Load</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -278,6 +318,9 @@
      jinja variable information. -->
     <script>
         var entrypoint = '{{ entrypoint }}';
+        $( function() {
+            $( "#runopt_dialog" ).dialog();
+        });
     </script>
 
     <!-- Load d3.js and c3.js -->
