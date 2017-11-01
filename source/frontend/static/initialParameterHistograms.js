@@ -2,7 +2,7 @@
  * Draw histograms for distribution of parameters and weights on page for creation of new runs.
  */
 $(document).ready(function(){
-    for(var i = 1; i < 18; i++) {
+    for(var i = 1; i < 17; i++) {
         var chart = c3.generate({
             bindto: '#nrph' + i,
             data: {

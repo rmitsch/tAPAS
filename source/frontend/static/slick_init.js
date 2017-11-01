@@ -11,6 +11,19 @@ function updateCarousel(menuItemID)
 
     // Move carousel to panel of selected item.
     $('.carousel').slick('slickGoTo', menuIDs.indexOf(menuItemID));
+
+    // If "Run optimization" is selected: Show dialog.
+    if(menuItemID == "menu_run") {
+        $(document).ready(function(){
+            $( "#runopt_dialog" ).dialog("open");
+        });
+    }
+
+    else {
+        $(document).ready(function(){
+            $( "#runopt_dialog" ).dialog("close");
+        });
+    }
 }
 
 $(document).ready(function(){
@@ -29,21 +42,24 @@ $(document).ready(function(){
         speed: 200
     });
 
-    // Find out which element should be selected after page load.
-    var setAnchor = window.location.hash.substring(1);
-    var selectedMenuItemID = $.inArray(setAnchor, menuIDs) > -1 ? setAnchor : "menu_start";
-
-    // Always init with "Start" as selected menu point.
-    document.getElementById(selectedMenuItemID).classList.add('pure-menu-selected');
-
-    // Move carousel to panel 'Start'.
-    $('.carousel').slick('slickGoTo', menuIDs.indexOf(selectedMenuItemID));
-
     // Change navigation when slide changes via carousel.
     $('.carousel').on('beforeChange', function(event, slick, currentSlideIndex, nextSlideIndex) {
         window.location.hash = menuIDs[nextSlideIndex];
         updateCarousel(menuIDs[nextSlideIndex]);
     });
 
+    // Initialize popup for selection of run.
+    $(document).ready(function(){
+        $( "#runopt_dialog" ).dialog({
+            autoOpen: false,
+            modal: true
+        });
+    });
+
+    // Find out which element should be selected after page load.
+    var setAnchor = window.location.hash.substring(1);
+    var selectedMenuItemID = $.inArray(setAnchor, menuIDs) > -1 ? setAnchor : "menu_start";
+    // Update carousel.
+    updateCarousel(selectedMenuItemID);
 });
 

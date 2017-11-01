@@ -217,7 +217,7 @@ div#datasetSelect {
     margin-bottom: 10px;
 }
 
-div#datasetSelect.styled-select.default.semi-square {
+div.runopt_optionContainerSub div.styled-select.default.semi-square {
     position: relative;
     top: -9px;
 }
@@ -256,9 +256,10 @@ div.ui-dialog-titlebar {
 }
 
 #runopt_choiceControls {
-    width: 300px;
+    width: 100%;
     margin: auto;
     text-align: left;
+    margin-top: 30px;
 }
 
 #runopt_dialog a.pure-button {
