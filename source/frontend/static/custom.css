@@ -141,10 +141,11 @@ div.carousel.slick-initialized.slick-slider.slick-dotted {
     padding-bottom: 0px;
 }
 
-#initialParameterGrid .pure-u-1-6 {
+#initialParameterGrid .pure-u-1-6, #initialParameterGrid .pure-u-1-5 {
     margin-bottom:0px;
     margin-left:10px;
     margin-right:10px;
+    margin-top: 0px;
     position: relative;
 }
 
@@ -165,10 +166,6 @@ span.ui-slider-handle.ui-corner-all.ui-state-default {
     margin-left: 0px;
 }
 
-.datasetSelect {
-    margin-bottom: 10px;
-}
-
 .irs-line, .irs-bar, .irs-bar-edge {
     height: 8px;
 }
@@ -185,7 +182,7 @@ div#initialParameterGrid span.irs-with-grid, div#measureWeightGrid span.irs-with
 
 div#initialParameterGrid div.styled-select  {
     position: relative;
-    top: -10px;
+    top: -9px;
 }
 
 
@@ -215,6 +212,8 @@ div#datasetSelect {
     width: 125px;
     height: 29px;
     margin-bottom: 10px;
+    position: relative;
+    top: -9px;
 }
 
 div.runopt_optionContainerSub div.styled-select.default.semi-square {
@@ -242,7 +241,7 @@ div.splash-text div.pure-g input.nrpStepper {
 }
 
 #initialParameterGrid {
-    height: 235px;
+    height: 300px;
 }
 
 #runopt_datasetChoice div.styled-select {
@@ -280,4 +279,49 @@ div.ui-dialog-titlebar {
 
 .maxWidth a {
     width: 100%;
+}
+
+.slick-prev, .slick-next {
+    top: 300px;
+}
+
+.lcs_switch {
+    width: 60px;
+    height: 20px;
+}
+
+.lcs_wrap {
+    height: 20px;
+}
+
+.lcs_label {
+    font-size: 10px;
+    top: 1px;
+}
+
+.lcs_switch.lcs_on {
+    background: #3d4a57;
+}
+
+.lcs_cursor {
+    width: 14px;
+    height: 14px;
+}
+
+span.parameterLabel {
+    margin-bottom: 9px;
+}
+
+#initialParameterGrid .lcs_wrap {
+    position: absolute;
+    right: 0px;
+    top: 21px;
+}
+
+.lcs_switch.lcs_on .lcs_cursor {
+    left: 43px;
+}
+
+span.parameterLabel.noFontStyle {
+    font-style: normal;
 }

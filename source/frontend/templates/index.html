@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="./static/lib/ion_rangeslider/css/ion.rangeSlider.css" />
     <link rel="stylesheet" href="./static/lib/ion_rangeslider/css/ion.rangeSlider.skinFlat.css" />
     <link rel="stylesheet" href="./static/lib/c3-0.4.18/c3.css" rel="stylesheet">
+    <link rel="stylesheet" href="./static/lib/lcSwitch/lc_switch.css" rel="stylesheet">
 
     <link rel="stylesheet" href="./static/custom.css">
     <link rel="stylesheet" href="./static/dropdown.css">
@@ -150,55 +151,73 @@
                     <div class="pure-g" id="initialParameterGrid">
                         <div class="pure-u-1-6">
                             <span class="parameterLabel">Dimensions</span>
+                            <span class="parameterLabel noFontStyle">Fix value</span>
                             <input class="nrpStepper" id="stepper_numdim" type="number" value="0" step="1" min="0"/>
+                            <input type="checkbox" name="fixValueCheck1" id="fixValueCheck1" value="4" class="lcs_check" autocomplete="off" />
                             <div class="newRunParameterHistograms" id="nrph2"></div>
                             <input type="text" id="slider1" value="" name="slider1" />
                         </div>
                         <div class="pure-u-1-6">
                             <span class="parameterLabel">Perplexity</span>
+                            <span class="parameterLabel noFontStyle">Fix value</span>
                             <input class="nrpStepper" id="stepper_perplexity" type="number" value="0" step="1" min="0"/>
+                            <input type="checkbox" name="fixValueCheck2" id="fixValueCheck2" value="4" class="lcs_check" autocomplete="off" />
                             <div class="newRunParameterHistograms" id="nrph3"></div>
                             <input type="text" id="slider2" value="" name="slider2" />
                         </div>
                         <div class="pure-u-1-6">
                             <span class="parameterLabel">Early exagg.</span>
+                            <span class="parameterLabel noFontStyle">Fix value</span>
                             <input class="nrpStepper" id="stepper_earlyExxageration" type="number" value="0" step="1" min="0"/>
+                            <input type="checkbox" name="fixValueCheck3" id="fixValueCheck3" value="4" class="lcs_check" autocomplete="off" />
                             <div class="newRunParameterHistograms" id="nrph4"></div>
                             <input type="text" id="slider3" value="" name="slider3" />
                         </div>
                         <div class="pure-u-1-6">
                             <span class="parameterLabel">Learning rate</span>
+                            <span class="parameterLabel noFontStyle">Fix value</span>
                             <input class="nrpStepper" id="stepper_learningRate" type="number" value="0" step="1" min="0"/>
+                            <input type="checkbox" name="fixValueCheck4" id="fixValueCheck4" value="4" class="lcs_check" autocomplete="off" />
                             <div class="newRunParameterHistograms" id="nrph5"></div>
                             <input type="text" id="slider4" value="" name="slider4" />
                         </div>
                         <div class="pure-u-1-6">
                             <span class="parameterLabel">Iterations</span>
+                            <span class="parameterLabel noFontStyle">Fix value</span>
                             <input class="nrpStepper" id="stepper_iterations" type="number" value="0" step="1" min="0"/>
+                            <input type="checkbox" name="fixValueCheck5" id="fixValueCheck5" value="4" class="lcs_check" autocomplete="off" />
                             <div class="newRunParameterHistograms" id="nrph6"></div>
                             <input type="text" id="slider5" value="" name="slider5" />
                         </div>
                         <div class="pure-u-1-6">
                             <span class="parameterLabel">Min grad norm</span>
+                            <span class="parameterLabel noFontStyle">Fix value</span>
                             <input class="nrpStepper" id="stepper_minGradNorm" type="number" value="0" step="1" min="0"/>
+                            <input type="checkbox" name="fixValueCheck6" id="fixValueCheck6" value="4" class="lcs_check" autocomplete="off" />
                             <div class="newRunParameterHistograms" id="nrph7"></div>
                             <input type="text" id="slider6" value="" name="slider6" />
                         </div>
                         <div class="pure-u-1-6">
                             <span class="parameterLabel">Random state</span>
+                            <span class="parameterLabel noFontStyle">Fix value</span>
                             <input class="nrpStepper" id="stepper_randomState" type="number" value="0" step="1" min="0"/>
+                            <input type="checkbox" name="fixValueCheck7" id="fixValueCheck7" value="4" class="lcs_check" autocomplete="off" />
                             <div class="newRunParameterHistograms" id="nrph8"></div>
                             <input type="text" id="slider7" value="" name="slider7" />
                         </div>
                         <div class="pure-u-1-6">
                             <span class="parameterLabel">Angle</span>
+                            <span class="parameterLabel noFontStyle">Fix value</span>
                             <input class="nrpStepper" id="stepper_angle" type="number" value="0" step="1" min="0"/>
+                            <input type="checkbox" name="fixValueCheck8" id="fixValueCheck8" value="4" class="lcs_check" autocomplete="off" />
                             <div class="newRunParameterHistograms" id="nrph9"></div>
                             <input type="text" id="slider8" value="" name="slider8" />
                         </div>
                         <div class="pure-u-1-6">
                             <span class="parameterLabel">Metric</span>
+                            <span class="parameterLabel noFontStyle">Fix value</span>
                             <div class="newRunParameterHistograms" id="nrph10"></div>
+                            <input type="checkbox" name="fixValueCheck9" id="fixValueCheck9" value="4" class="lcs_check" autocomplete="off" />
                             <div class="styled-select default semi-square">
                                 <select>
                                     <option value="volvo">Volvo</option>
@@ -210,7 +229,9 @@
                         </div>
                         <div class="pure-u-1-6">
                             <span class="parameterLabel">Initialization method</span>
+                            <span class="parameterLabel noFontStyle">Fix value</span>
                             <div class="newRunParameterHistograms" id="nrph11"></div>
+                            <input type="checkbox" name="fixValueCheck10" id="fixValueCheck10" value="4" class="lcs_check" autocomplete="off" />
                             <div class="styled-select default semi-square">
                                 <select>
                                     <option value="volvo">Volvo</option>
@@ -261,7 +282,6 @@
                 <a class="pure-button pure-button-primary" id="createRunButton">Create run</a>
             </div>
             <div class="carouselElement" id="runopt_carouselElement">
-                <h2 class="splash-head">Run optimization</h2>
                 <div class="splash-text">
                     <div id="runopt_dialog" title="Select dataset">
                         Select the configuration you want to run. If it's a new one, you'll start with the initial model based on
@@ -313,6 +333,9 @@
     <script src="./static/lib/queue.js"></script>
     <script src="./static/lib/slick-1.8/slick/slick.min.js"></script>
     <script src="./static/lib/ion_rangeslider/js/ion.rangeSlider.min.js"></script>
+    <!-- Toggle buttons -->
+    <script src="./static/lib/lcSwitch/lc_switch.min.js"></script>
+
     <!-- Reading env. variables needed in JS is done here, since for whatever reason a separate script can't process
      jinja variable information. -->
     <script>

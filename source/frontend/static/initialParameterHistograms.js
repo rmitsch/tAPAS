@@ -37,4 +37,9 @@ $(document).ready(function(){
             }
         });
     }
+
+    // Initialize "Fix value" toggle buttons.
+    for(var i = 1; i < 11; i++) {
+        $('#fixValueCheck' + i).lc_switch();
+    }
 });
