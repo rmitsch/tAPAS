@@ -119,3 +119,7 @@ logs
 # No gensim-produced files.
 *.mm
 *.dict
+
+# Exclude local docker volumes.
+/setup/tapasPostgresVolume
+/setup/tapasPostgresVolume/*
