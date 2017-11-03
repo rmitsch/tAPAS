@@ -11,7 +11,8 @@ services:
       - "8002:5432"
      # Make Postgres log to a file.
      # Tune configuration here.
-    command: postgres -c shared_buffers=3GB -c effective_cache_size=6GB -c work_mem=150MB -c log_min_error_statement=error -c log_statement='none' -c log_min_duration_statement=-1 -c maintenance_work_mem=2GB -c max_wal_size=2GB -c wal_level=minimal -c archive_mode=off -c max_wal_senders=0 -c max_parallel_workers_per_gather=2
+    command: 
+      postgres -c shared_buffers=3GB -c effective_cache_size=6GB -c work_mem=150MB -c log_min_error_statement=error -c log_statement='none' -c log_min_duration_statement=-1 -c maintenance_work_mem=2GB -c max_wal_size=2GB -c wal_level=minimal -c archive_mode=off -c max_wal_senders=0 -c max_parallel_workers_per_gather=2
     environment:
       # Set superuser name.
       - POSTGRES_USER=admin
@@ -22,7 +23,7 @@ services:
       # Point 
     # If on a non-Linux OS, make sure you share the drive used here. Go to Docker's settings -> Shared Drives
     volumes:
-      # Persist the data between container invocations
+      # Persist the data between container invocations in current folder.
       - ./tapasPostgresVolume:/var/lib/postgresql/data/
       #- ./logs:/logs
     networks:

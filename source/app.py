@@ -19,9 +19,11 @@ logger.info("Starting test.py.")
 # Create database connection.
 db_connector = DBConnector(host="localhost",
                            database="tapas",
-                           port="8001",
+                           port="8002",
                            user="admin",
                            password="password")
+# Construct database.
+db_connector.construct_database(reconstruct=True)
 
 
 app = Flask(__name__, template_folder='frontend/templates', static_folder='frontend/static')
