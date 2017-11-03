@@ -6,7 +6,22 @@ import os
 from flask import Flask
 from flask import render_template
 from flask import request, redirect, url_for, send_from_directory
+import backend.database.DBConnector as DBConnector
+import backend.utils.Utils as Utils
+import logging
 import psycopg2
+
+# Create logger.
+Utils.create_logger()
+logger = logging.getLogger("tapas")
+logger.info("Starting test.py.")
+
+# Create database connection.
+db_connector = DBConnector(host="localhost",
+                           database="tapas",
+                           port="8001",
+                           user="admin",
+                           password="password")
 
 
 app = Flask(__name__, template_folder='frontend/templates', static_folder='frontend/static')

@@ -1,20 +1,21 @@
 -- Created by Vertabelo (http://vertabelo.com)
--- Last modification date: 2017-10-27 20:48:51.597
+-- Last modification date: 2017-11-03 20:07:48.344
 
-create schema topac;
+create schema tapas;
 
 -- tables
 -- Table: datasets
-CREATE TABLE datasets (
+CREATE TABLE tapas.datasets (
     id serial  NOT NULL,
     name text  NOT NULL,
     n_dim int  NOT NULL CHECK (> 0),
+    quality real  NOT NULL,
     CONSTRAINT c_datasets_u_name UNIQUE (name) NOT DEFERRABLE  INITIALLY IMMEDIATE,
     CONSTRAINT datasets_pk PRIMARY KEY (id)
 );
 
 -- Table: run
-CREATE TABLE run (
+CREATE TABLE tapas.run (
     id serial  NOT NULL,
     title text  NULL,
     description text  NULL,
@@ -29,7 +30,7 @@ CREATE TABLE run (
 );
 
 -- Table: tsne_models
-CREATE TABLE tsne_models (
+CREATE TABLE tapas.tsne_models (
     id serial  NOT NULL,
     n_components int  NOT NULL,
     perplexity real  NOT NULL,
@@ -41,21 +42,21 @@ CREATE TABLE tsne_models (
     init_method text  NOT NULL,
     random_state int  NULL,
     angle float  NOT NULL,
-    accuracy float  NOT NULL,
-    corpora_id int  NOT NULL,
-    run_id int  NOT NULL,
     measure_trustworthiness real  NOT NULL,
     measure_continuity real  NOT NULL,
     measure_lcmc real  NOT NULL,
     measure_generalization_accuracy real  NOT NULL,
     measure_word_embedding_information_ratio real  NOT NULL,
     measure_user_quality real  NOT NULL,
-    CONSTRAINT c_u_tsne_models_params_corpora_id UNIQUE (corpora_id, early_exaggeration, perplexity, learning_rate, n_iter, min_grad_norm, init_method, metric, random_state, angle, n_components) NOT DEFERRABLE  INITIALLY IMMEDIATE,
+    we_quality real  NOT NULL,
+    run_sequence_number int  NOT NULL CHECK (> 0),
+    run_id int  NOT NULL,
+    CONSTRAINT c_u_tsne_models_params_corpora_id UNIQUE (early_exaggeration, perplexity, learning_rate, n_iter, min_grad_norm, init_method, metric, random_state, angle, n_components) NOT DEFERRABLE  INITIALLY IMMEDIATE,
     CONSTRAINT tsne_models_pk PRIMARY KEY (id)
 );
 
 -- Table: word_vectors
-CREATE TABLE word_vectors (
+CREATE TABLE tapas.word_vectors (
     id serial  NOT NULL,
     word text  NOT NULL,
     values real[]  NOT NULL,
@@ -66,7 +67,7 @@ CREATE TABLE word_vectors (
 );
 
 -- Table: word_vectors_in_tsne_models
-CREATE TABLE word_vectors_in_tsne_models (
+CREATE TABLE tapas.word_vectors_in_tsne_models (
     word_vectors_id int  NOT NULL,
     tsne_models_id int  NOT NULL,
     coordinates real[]  NOT NULL,
