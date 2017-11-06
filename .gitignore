@@ -123,3 +123,8 @@ logs
 # Exclude local docker volumes.
 /setup/tapasPostgresVolume
 /setup/tapasPostgresVolume/*
+
+# Exclude word vector files.
+*.vec
+*.w2v
+*.bin

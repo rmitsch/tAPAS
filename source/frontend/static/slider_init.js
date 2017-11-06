@@ -1,6 +1,6 @@
 $(function ()
 {
-    for(var i = 1; i < 14; i++) {
+    for(var i = 1; i <= 12; i++) {
         $("#slider" + i).ionRangeSlider({
             hide_min_max: true,
             keyboard: true,

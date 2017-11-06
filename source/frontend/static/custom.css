@@ -186,10 +186,10 @@ div#initialParameterGrid div.styled-select  {
 }
 
 
-#measureWeightGrid .pure-u-1-6 {
+#measureWeightGrid .pure-u-1-5 {
     margin-bottom:0px;
     margin-left:10px;
-    margin-right:10px;
+    margin-right:26px;
     position: relative;
 }
 
@@ -218,7 +218,7 @@ div#datasetSelect {
 
 div.runopt_optionContainerSub div.styled-select.default.semi-square {
     position: relative;
-    top: -9px;
+    top: 0px;
 }
 
 #createRunButton {

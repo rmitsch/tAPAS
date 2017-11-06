@@ -37,6 +37,21 @@ def index():
     return render_template("index.html", version=version, entrypoint="about")
 
 
+# Parse and upload CSV with word vectors.
+@app.route('/upload', methods=['POST'])
+def upload():
+    file = request.files['file']
+    # Check if the file is one of the allowed types/extensions
+    if file:
+        # Move the file from the temporal folder to the upload folder we set up.
+        #file.save(os.path.join(app.config['UPLOAD_FOLDER'], "spreadsheet.ods"))
+        # Redirect the user to the uploaded_file route, which will basicaly show on the browser the uploaded file.
+        return redirect("/#menu_createrun")
+
+    else:
+        return "Wrong file format."
+
+
 # /about
 # @app.route("/about")
 # def about():
