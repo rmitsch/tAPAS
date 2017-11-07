@@ -75,5 +75,9 @@ def upload():
 # def run():
 #     return render_template("index.html", version=version, entrypoint="run")
 
+@app.route('/carousel_content', methods=["GET","POST"])
+def fetch():
+    return app.send_static_file('index_carousel.html')
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=7182, debug=True)

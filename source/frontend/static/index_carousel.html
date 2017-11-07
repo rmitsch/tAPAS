@@ -1,0 +1,266 @@
+<div class="carouselElement">
+    <h2 class="splash-head">Getting started</h2>
+    <div class="splash-text">
+        <i><b>t</b>-SNE: <b>A</b>ssisted <b>P</b>arameter optimization by <b>A</b>pproximating neighbourhood <b>S</b>imilarity</b></i>.
+        <br/><br/>This is a tool for hyperparameter optimization of dimensionality reduction with t-SNE in the context of word
+        embeddings. You can either upload a new dataset, start a new run on an uploaded dataset or proceed an existing
+        run. Use the navigation and/or the arrows to move through the setup process.
+        <br/><br/> It applies Bayesian optimization utilizing visual evaluation through the user and a variety of
+        coranking-matrix based measures (trustworthiness, continuity, LCMC) as well as measurements of relative
+        word embedding information loss in lower-dimensional spaces to assess the quality of a t-SNE parametrization.
+        <br/><br/>
+        <hr>
+        <br/>Related links and references to some used libraries and papers:<br/>
+        <ul class="listAbout">
+            <li><a href="https://github.com/rmitsch/tapas" class="pure-button pure-button-primary">tAPAS on github</a></li>
+            <li><a href="http://jmlr.org/papers/v9/vandermaaten08a.html" class="pure-button pure-button-primary">t-SNE paper by van der Maaten & Hinton</a></li></li>
+            <li><a href="https://github.com/fmfn/BayesianOptimization" class="pure-button pure-button-primary">Bayesian Optimization in Python</a></li></li>
+            <li><a href="https://github.com/kudkudak/word-embeddings-benchmarks" class="pure-button pure-button-primary">Benchmarks for word embedding models</a></li></li>
+            <li><a href="https://github.com/samueljackson92/coranking" class="pure-button pure-button-primary">Implementation of coranking matrix-based dimensionality reduction quality measures</a></li></li>
+        </ul>
+    </div>
+</div>
+<div class="carouselElement">
+    <h2 class="splash-head">Upload Dataset</h2>
+    <div class="splash-text">
+        The uploaded dataset has to fulfill the following conditions:<br/>
+        <ul>
+            <li>All entries have to have the same number of dimensions.</li>
+            <li>Words have to be sorted by their in-corpus frequency descendingly.</li>
+            <li>File's columns have to be comma-separated (i. e. file has to be a CSV).</li>
+        </ul>
+        <br/>Example for column sequence pattern:<br/><br/>
+        <table class="pure-table">
+            <thead>
+                <tr>
+                    <th>Word</th>
+                    <th>Value for dimension #1</th>
+                    <th>Value for dimension #2</th>
+                    <th>...</th>
+                    <th>Value for dimension #n</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>Day</td>
+                    <td>344.332</td>
+                    <td>6632.243</td>
+                    <td>...</td>
+                    <td>0.433</td>
+                </tr>
+                <tr>
+                    <td>...</td>
+                    <td>...</td>
+                    <td>...</td>
+                    <td>...</td>
+                    <td>...</td>
+                </tr>
+                <tr>
+                    <td>Zeta</td>
+                    <td>63.4323</td>
+                    <td>991.234</td>
+                    <td>...</td>
+                    <td>344.23</td>
+                </tr>
+            </tbody>
+        </table>
+        <br/>The corresponding file would hence look like <i>Aardvark,344.332,...</i>.<br/><br/><hr><br/>
+        <div id="fileupload_container">
+            <form id = "uploadbanner" method = "post" enctype="multipart/form-data" action = "upload">
+                <input type="file" name="file" id="file" onchange="this.form.submit()" class="inputfile" action="#"/>
+                <label for="file" id="upload_label">
+                    <img src="./static/img/spreadsheet.png" alt="Choose file" width="50">
+                    <br/>
+                    <a class="pure-button pure-button-primary">Choose file</a>
+                </label>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="carouselElement">
+    <h2 class="splash-head">Create New Run</h2>
+    <div class="splash-text">
+        In order to create a new run, you have to set values for the initial parameters, weight the available
+        measures so that the tool can come up with an aggregated scalar for the models' quality and finally
+        pick the dataset you want to apply t-SNE on.
+        <h4 id="nprDatasetHeader">Dataset</h4>
+        <div class="newRunParameterHistograms" id="nrph1"></div>
+        <div class="styled-select default semi-square" id="datasetSelect">
+            <select class="datasetSelect">
+                <option value="volvo">Volvo</option>
+                <option value="saab">Saab</option>
+                <option value="mercedes">Mercedes</option>
+                <option value="audi">Audi</option>
+            </select>
+        </div>
+        <hr>
+        <h4>Initial Hyperparameters</h4>
+        <div class="pure-g" id="initialParameterGrid">
+            <div class="pure-u-1-6">
+                <span class="parameterLabel">Dimensions</span>
+                <span class="parameterLabel noFontStyle">Fix value</span>
+                <input class="nrpStepper" id="stepper_numdim" type="number" value="0" step="1" min="0"/>
+                <input type="checkbox" name="fixValueCheck1" id="fixValueCheck1" value="4" class="lcs_check" autocomplete="off" />
+                <div class="newRunParameterHistograms" id="nrph2"></div>
+                <input type="text" id="slider1" value="" name="slider1" />
+            </div>
+            <div class="pure-u-1-6">
+                <span class="parameterLabel">Perplexity</span>
+                <span class="parameterLabel noFontStyle">Fix value</span>
+                <input class="nrpStepper" id="stepper_perplexity" type="number" value="0" step="1" min="0"/>
+                <input type="checkbox" name="fixValueCheck2" id="fixValueCheck2" value="4" class="lcs_check" autocomplete="off" />
+                <div class="newRunParameterHistograms" id="nrph3"></div>
+                <input type="text" id="slider2" value="" name="slider2" />
+            </div>
+            <div class="pure-u-1-6">
+                <span class="parameterLabel">Early exagg.</span>
+                <span class="parameterLabel noFontStyle">Fix value</span>
+                <input class="nrpStepper" id="stepper_earlyExxageration" type="number" value="0" step="1" min="0"/>
+                <input type="checkbox" name="fixValueCheck3" id="fixValueCheck3" value="4" class="lcs_check" autocomplete="off" />
+                <div class="newRunParameterHistograms" id="nrph4"></div>
+                <input type="text" id="slider3" value="" name="slider3" />
+            </div>
+            <div class="pure-u-1-6">
+                <span class="parameterLabel">Learning rate</span>
+                <span class="parameterLabel noFontStyle">Fix value</span>
+                <input class="nrpStepper" id="stepper_learningRate" type="number" value="0" step="1" min="0"/>
+                <input type="checkbox" name="fixValueCheck4" id="fixValueCheck4" value="4" class="lcs_check" autocomplete="off" />
+                <div class="newRunParameterHistograms" id="nrph5"></div>
+                <input type="text" id="slider4" value="" name="slider4" />
+            </div>
+            <div class="pure-u-1-6">
+                <span class="parameterLabel">Iterations</span>
+                <span class="parameterLabel noFontStyle">Fix value</span>
+                <input class="nrpStepper" id="stepper_iterations" type="number" value="0" step="1" min="0"/>
+                <input type="checkbox" name="fixValueCheck5" id="fixValueCheck5" value="4" class="lcs_check" autocomplete="off" />
+                <div class="newRunParameterHistograms" id="nrph6"></div>
+                <input type="text" id="slider5" value="" name="slider5" />
+            </div>
+            <div class="pure-u-1-6">
+                <span class="parameterLabel">Min grad norm</span>
+                <span class="parameterLabel noFontStyle">Fix value</span>
+                <input class="nrpStepper" id="stepper_minGradNorm" type="number" value="0" step="1" min="0"/>
+                <input type="checkbox" name="fixValueCheck6" id="fixValueCheck6" value="4" class="lcs_check" autocomplete="off" />
+                <div class="newRunParameterHistograms" id="nrph7"></div>
+                <input type="text" id="slider6" value="" name="slider6" />
+            </div>
+            <div class="pure-u-1-6">
+                <span class="parameterLabel">Random state</span>
+                <span class="parameterLabel noFontStyle">Fix value</span>
+                <input class="nrpStepper" id="stepper_randomState" type="number" value="0" step="1" min="0"/>
+                <input type="checkbox" name="fixValueCheck7" id="fixValueCheck7" value="4" class="lcs_check" autocomplete="off" />
+                <div class="newRunParameterHistograms" id="nrph8"></div>
+                <input type="text" id="slider7" value="" name="slider7" />
+            </div>
+            <div class="pure-u-1-6">
+                <span class="parameterLabel">Angle</span>
+                <span class="parameterLabel noFontStyle">Fix value</span>
+                <input class="nrpStepper" id="stepper_angle" type="number" value="0" step="1" min="0"/>
+                <input type="checkbox" name="fixValueCheck8" id="fixValueCheck8" value="4" class="lcs_check" autocomplete="off" />
+                <div class="newRunParameterHistograms" id="nrph9"></div>
+                <input type="text" id="slider8" value="" name="slider8" />
+            </div>
+            <div class="pure-u-1-6">
+                <span class="parameterLabel">Metric</span>
+                <span class="parameterLabel noFontStyle">Fix value</span>
+                <div class="newRunParameterHistograms" id="nrph10"></div>
+                <input type="checkbox" name="fixValueCheck9" id="fixValueCheck9" value="4" class="lcs_check" autocomplete="off" />
+                <div class="styled-select default semi-square">
+                    <select>
+                        <option value="volvo">Volvo</option>
+                        <option value="saab">Saab</option>
+                        <option value="mercedes">Mercedes</option>
+                        <option value="audi">Audi</option>
+                    </select>
+                </div>
+            </div>
+            <div class="pure-u-1-6">
+                <span class="parameterLabel">Initialization method</span>
+                <span class="parameterLabel noFontStyle">Fix value</span>
+                <div class="newRunParameterHistograms" id="nrph11"></div>
+                <input type="checkbox" name="fixValueCheck10" id="fixValueCheck10" value="4" class="lcs_check" autocomplete="off" />
+                <div class="styled-select default semi-square">
+                    <select>
+                        <option value="volvo">Volvo</option>
+                        <option value="saab">Saab</option>
+                        <option value="mercedes">Mercedes</option>
+                        <option value="audi">Audi</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <h4>Measure Weights</h4>
+        <div class="pure-g" id="measureWeightGrid">
+            <div class="pure-u-1-5">
+                <span class="parameterLabel">Trustworthiness</span>
+                <input class="nrpStepper" id="stepper_measureTrustworthiness" type="number" value="0" step="1" min="0"/>
+                <div class="newRunParameterHistograms" id="nrph12"></div>
+                <input type="text" id="slider9" value="" name="slider9" />
+            </div>
+            <div class="pure-u-1-5">
+                <span class="parameterLabel">Continuity</span>
+                <input class="nrpStepper" id="stepper_measureContinuity" type="number" value="0" step="1" min="0"/>
+                <div class="newRunParameterHistograms" id="nrph13"></div>
+                <input type="text" id="slider10" value="" name="slider10" />
+            </div>
+            <div class="pure-u-1-5">
+                <span class="parameterLabel">Generalization</span>
+                <input class="nrpStepper" id="stepper_generalizationAccuracy" type="number" value="0" step="1" min="0"/>
+                <div class="newRunParameterHistograms" id="nrph14"></div>
+                <input type="text" id="slider11" value="" name="slider11" />
+            </div>
+            <div class="pure-u-1-5">
+                <span title="Word embedding quality calculated using various measures in the low-dimensional space compared to model quality in original space."
+                      class="parameterLabel">Relative WE-Q</span>
+                <input class="nrpStepper" id="stepper_relativeWEQuality" type="number" value="0" step="1" min="0"/>
+                <div class="newRunParameterHistograms" id="nrph15"></div>
+                <input type="text" id="slider12" value="" name="slider12" />
+            </div>
+        </div>
+    </div>
+    <hr><br/>
+    <a class="pure-button pure-button-primary" id="createRunButton">Create run</a>
+</div>
+<div class="carouselElement" id="runopt_carouselElement">
+    <div class="splash-text">
+        <div id="runopt_dialog" title="Select dataset">
+            Select the configuration you want to run. If it's a new one, you'll start with the initial model based on
+            hyperparameter settings you chose. If it's an existing one, you'll proceed at the latest iteration.
+            <br/><br/><hr/>
+            <div id="runopt_choiceControls">
+                <div>
+                    <div class="runopt_optionContainerSub"><b>Dataset</b></div>
+                    <div class="runopt_optionContainerSub">
+                        <div class="styled-select default semi-square">
+                            <select>
+                                <option value="volvo">Volvo</option>
+                                <option value="saab">Saab</option>
+                                <option value="mercedes">Mercedes</option>
+                                <option value="audi">Audi</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="runopt_optionContainerSub"><b>Run</b></div>
+                    <div class="runopt_optionContainerSub">
+                        <div class="styled-select default semi-square">
+                            <select>
+                                <option value="volvo">Volvo</option>
+                                <option value="saab">Saab</option>
+                                <option value="mercedes">Mercedes</option>
+                                <option value="audi">Audi</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="maxWidth">
+                    <a href="https://github.com/rmitsch/tapas" class="pure-button pure-button-primary">Load</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
