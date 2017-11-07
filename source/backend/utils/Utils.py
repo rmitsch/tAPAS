@@ -9,6 +9,7 @@ import re
 from pattern3 import vector as pattern_vector
 from flask import Flask
 import tempfile
+import backend.database.DBConnector as DBConnector
 
 
 # Class for various, non-essential tasks.
@@ -87,3 +88,19 @@ class Utils:
         """
         tmpfile = tempfile.NamedTemporaryFile('wb+', prefix='flaskapp')
         return tmpfile
+
+    @staticmethod
+    def connect_to_database():
+        """
+        Create database connection.
+        :return: Instance of DB connector.
+        """
+        db_connector = DBConnector(host="localhost",
+                                   database="tapas",
+                                   port="8002",
+                                   user="admin",
+                                   password="password")
+        # Construct database.
+        db_connector.construct_database(reconstruct=False)
+
+        return db_connector

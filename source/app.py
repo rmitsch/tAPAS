@@ -2,7 +2,6 @@
 # @date 2017-10-27
 #
 
-import os
 import re
 from flask import Flask
 from flask import render_template
@@ -11,10 +10,7 @@ import backend.database.DBConnector as DBConnector
 import backend.utils.Utils as Utils
 import logging
 import psycopg2
-import tempfile
-import io
 import werkzeug
-import psutil
 
 
 def init_flask_app():
@@ -31,26 +27,10 @@ def init_flask_app():
     return app
 
 
-def connect_to_database():
-    """
-    Create database connection.
-    :return: Instance of DB connector.
-    """
-    db_connector = DBConnector(host="localhost",
-                               database="tapas",
-                               port="8002",
-                               user="admin",
-                               password="password")
-    # Construct database.
-    db_connector.construct_database(reconstruct=False)
-
-    return db_connector
-
-
 # Initialize logger.
 logger = Utils.create_logger()
 # Connect to database.
-db_connector = connect_to_database()
+db_connector = Utils.connect_to_database()
 # Initialize flask app.
 app = init_flask_app()
 
@@ -58,6 +38,8 @@ app = init_flask_app()
 version = "0.1"
 # Buffer for storing last line, if it's interrupted by chunking.
 interrupted_last_line_buffer = None
+# Store number of dimensions for current dataset.
+num_dimensions = -1
 
 
 # root: Render HTML for start menu.
@@ -76,6 +58,8 @@ def upload(path):
     """
     # Declare global variable for interrupted lines.
     global interrupted_last_line_buffer
+    # Declare global variable for number of dimensions.
+    global num_dimensions
     # Lists for storing data for inserts.
     words = []
     vectors = []
@@ -88,22 +72,26 @@ def upload(path):
     # Retrieve reference to sent file from generator.
     for file_item in files.values():
         file = file_item
-    # Read first line to get number of dimensions.
-    for line in file:
-        # Cast number of dimensions to int.
-        num_dim = int(re.sub(r"([\\n]|[']|[ ])", "", str(line).split(' ')[1]))
-        break
+    # If first chunk (i. e. user is uploading a new dataset): Determine number of dimensions.
+    if int(request.args['resumableChunkNumber']) == 1:
+        # Reset status attributes.
+        interrupted_last_line_buffer = None
+
+        # Read first line to get number of dimensions.
+        for line in file:
+            # Cast number of dimensions to int.
+            num_dimensions = int(re.sub(r"([\\n]|[']|[ ])", "", str(line).split(' ')[1]))
+            break
 
     # Create entry in datasets, if it doesn't exist yet.
-    dataset_id = db_connector.import_dataset(request.args['resumableFilename'], num_dim)
-    print(dataset_id)
-    input()
+    dataset_id = db_connector.import_dataset(request.args['resumableFilename'], num_dimensions)
+
     # Count lines in chunk.
     count = 0
     for line in file:
-        if str(line).count(' ') == num_dim:
-            print(line)
-            input()
+        # Ignore first line in first chunk.
+        if int(request.args['resumableChunkNumber']) == 1 and count > 0 \
+                or int(request.args['resumableChunkNumber']) > 1:
             merged_line = line
 
             # If line is interrupted (and therefore presumedly the last line in chunk): Store interrupted last line.
@@ -117,7 +105,29 @@ def upload(path):
                     # Reset buffer/flag for interrupted last line.
                     interrupted_last_line_buffer = None
 
-                # Add line to collection of items to insert in DB.
+                # Add line to collection of items to insert in DB. Remove trailing \n.
+                line_parts = str(merged_line).replace(' \\n', '').split(' ')
+
+                # Line has to contain num_dimennsions elements (word + coordinates). Otherwise invalid.
+                if len(line_parts) == num_dimensions + 1:
+                    # Append word.
+                    words.append(line_parts[0].replace('b\'', ''))
+                    # Cast coordinate vector to float. Remove remaining special characters.
+                    vectors.append([float(x.replace('\'', '')) for x in line_parts[1:]])
+                    print(vectors)
+
+                    # Next:
+                    #   - Create class for word vectors, move transformation code there.
+                    #   - Insert word vectors into DB.
+                    #   - Integrate DB with initial parameter histograms.
+                    #   - Construct dashboard layout.
+
+                    input()
+                else:
+                    print("corrupt: ")
+                    print(merged_line)
+                    print(line)
+                    print("---------------")
 
             count += 1
 
