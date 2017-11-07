@@ -7,6 +7,8 @@ import logging
 import nltk
 import re
 from pattern3 import vector as pattern_vector
+from flask import Flask
+import tempfile
 
 
 # Class for various, non-essential tasks.
@@ -21,7 +23,7 @@ class Utils:
         # Logger set-up.
         # Source: https://docs.python.org/3/howto/logging-cookbook.html
         # Create global logger.
-        Utils.logger = logging.getLogger('topac')
+        Utils.logger = logging.getLogger('tapas')
         Utils.logger.setLevel(logging.DEBUG)
         # Create console handler.
         ch = logging.StreamHandler()
@@ -72,3 +74,16 @@ class Utils:
             file.write(doc)
 
         file.close()
+
+    @staticmethod
+    def generate_custom_stream_factory(total_content_length, filename, content_type, content_length=None):
+        """
+        Custom stream factory used for parsing large (word vector) files.
+        :param total_content_length:
+        :param filename:
+        :param content_type:
+        :param content_length:
+        :return:
+        """
+        tmpfile = tempfile.NamedTemporaryFile('wb+', prefix='flaskapp')
+        return tmpfile

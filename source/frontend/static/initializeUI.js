@@ -131,6 +131,36 @@ function initInitialParameterHistograms()
     }
 }
 
+/*
+ * Use resume.js to upload massive files chunked.
+ */
+function initChunkedFileUpload()
+{
+    var r = new Resumable({
+      target: '/upload',
+      // Limit to chunks to 50 MB.
+      chunkSize: 50 * 1024 * 1024,
+      simultaneousUploads: 1
+    });
+
+    r.assignBrowse(document.getElementById('vectorFileUpload'));
+
+    r.on('fileAdded', function(file) {
+        console.log("file added");
+        r.upload();
+    });
+
+    r.on('fileSuccess', function(file,message) {
+        console.log("file success");
+    });
+
+    r.on('fileError', function(file, message) {
+        console.log(message);
+    });
+
+    // Use r.on('progress') to update progress indicator.
+}
+
 
 $(document).ready(function(){
     $.ajax({
@@ -147,6 +177,9 @@ $(document).ready(function(){
 
             // Initializing carousel functionality.
             initSlickCarousel();
+
+            // Initialize chunked file upload.
+            initChunkedFileUpload();
         }
     });
 });

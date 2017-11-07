@@ -325,3 +325,16 @@ span.parameterLabel {
 span.parameterLabel.noFontStyle {
     font-style: normal;
 }
+
+#vectorFileUpload {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    width: 100px;
+    cursor: pointer;
+}
+
+#vectorFileUpload img {
+    margin-left: auto;
+    margin-right: auto;
+}

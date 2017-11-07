@@ -25,6 +25,7 @@
     <div class="splash-text">
         The uploaded dataset has to fulfill the following conditions:<br/>
         <ul>
+            <li>First line consists of <i>number_of_datasets number_of_dimensions</i>.</li>
             <li>All entries have to have the same number of dimensions.</li>
             <li>Words have to be sorted by their in-corpus frequency descendingly.</li>
             <li>File's columns have to be comma-separated (i. e. file has to be a CSV).</li>
@@ -42,6 +43,13 @@
             </thead>
 
             <tbody>
+                <tr>
+                    <td>12345</td>
+                    <td>250</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
                 <tr>
                     <td>Day</td>
                     <td>344.332</td>
@@ -65,16 +73,12 @@
                 </tr>
             </tbody>
         </table>
-        <br/>The corresponding file would hence look like <i>Aardvark,344.332,...</i>.<br/><br/><hr><br/>
-        <div id="fileupload_container">
-            <form id = "uploadbanner" method = "post" enctype="multipart/form-data" action = "upload">
-                <input type="file" name="file" id="file" onchange="this.form.submit()" class="inputfile" action="#"/>
-                <label for="file" id="upload_label">
+        <br/>The corresponding file would hence look like <i>Day,344.332,...</i>.<br/><br/><hr><br/>
+        <div id="vectorFileUpload">
+            <div id="upload_label">
                     <img src="./static/img/spreadsheet.png" alt="Choose file" width="50">
-                    <br/>
-                    <a class="pure-button pure-button-primary">Choose file</a>
-                </label>
-            </form>
+                    <b><a class="pure-button pure-button-primary">Choose file</a></b>
+            </div>
         </div>
     </div>
 </div>

@@ -1,5 +1,5 @@
 -- Created by Vertabelo (http://vertabelo.com)
--- Last modification date: 2017-11-03 20:07:48.344
+-- Last modification date: 2017-11-07 20:27:06.883
 
 create schema tapas;
 
@@ -9,7 +9,7 @@ CREATE TABLE tapas.datasets (
     id serial  NOT NULL,
     name text  NOT NULL,
     n_dim int  NOT NULL CHECK (n_dim > 0),
-    quality real  NOT NULL,
+    quality real  NULL,
     CONSTRAINT c_datasets_u_name UNIQUE (name) NOT DEFERRABLE  INITIALLY IMMEDIATE,
     CONSTRAINT datasets_pk PRIMARY KEY (id)
 );
@@ -42,13 +42,12 @@ CREATE TABLE tapas.tsne_models (
     init_method text  NOT NULL,
     random_state int  NULL,
     angle float  NOT NULL,
-    measure_trustworthiness real  NOT NULL,
-    measure_continuity real  NOT NULL,
-    measure_lcmc real  NOT NULL,
-    measure_generalization_accuracy real  NOT NULL,
-    measure_word_embedding_information_ratio real  NOT NULL,
-    measure_user_quality real  NOT NULL,
-    we_quality real  NOT NULL,
+    measure_trustworthiness real  NULL,
+    measure_continuity real  NULL,
+    measure_generalization_accuracy real  NULL,
+    measure_word_embedding_information_ratio real  NULL,
+    measure_user_quality real  NULL,
+    measure_we_quality real  NULL,
     run_sequence_number int  NOT NULL CHECK (run_sequence_number > 0),
     run_id int  NOT NULL,
     CONSTRAINT c_u_tsne_models_params_corpora_id UNIQUE (early_exaggeration, perplexity, learning_rate, n_iter, min_grad_norm, init_method, metric, random_state, angle, n_components) NOT DEFERRABLE  INITIALLY IMMEDIATE,
@@ -61,8 +60,7 @@ CREATE TABLE tapas.word_vectors (
     word text  NOT NULL,
     values real[]  NOT NULL,
     datasets_id int  NOT NULL,
-    frequency_rank int  NOT NULL CHECK (frequency_rank > 0),
-    cluster_id int  NOT NULL,
+    cluster_id int  NULL,
     CONSTRAINT word_vectors_pk PRIMARY KEY (id)
 );
 
@@ -71,7 +69,7 @@ CREATE TABLE tapas.word_vectors_in_tsne_models (
     word_vectors_id int  NOT NULL,
     tsne_models_id int  NOT NULL,
     coordinates real[]  NOT NULL,
-    cluster_id int  NOT NULL,
+    cluster_id int  NULL,
     CONSTRAINT word_vectors_in_tsne_models_pk PRIMARY KEY (word_vectors_id,tsne_models_id)
 );
 
