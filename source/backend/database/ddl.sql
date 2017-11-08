@@ -56,12 +56,13 @@ CREATE TABLE tapas.tsne_models (
 
 -- Table: word_vectors
 CREATE TABLE tapas.word_vectors (
-    id serial  NOT NULL,
-    word text  NOT NULL,
-    values real[]  NOT NULL,
-    datasets_id int  NOT NULL,
-    cluster_id int  NULL,
-    CONSTRAINT word_vectors_pk PRIMARY KEY (id)
+   id serial  NOT NULL,
+   word text  NOT NULL,
+   values real[]  NOT NULL,
+   datasets_id int  NOT NULL,
+   cluster_id int  NULL,
+   CONSTRAINT c_word_vectors_u_dataset_word UNIQUE (word, datasets_id) NOT DEFERRABLE  INITIALLY IMMEDIATE,
+   CONSTRAINT word_vectors_pk PRIMARY KEY (id)
 );
 
 -- Table: word_vectors_in_tsne_models

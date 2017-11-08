@@ -70,13 +70,14 @@ class DBConnector:
 
         # Check if dataset with this name already exists.
         cursor.execute("select "
-                       "    coalesce(id, -1)"
+                       "    id "
                        "from "
                        "    tapas.datasets "
                        "where "
                        "    name = %s",
                        (dataset_name,))
-        dataset_id = cursor.fetchone()[0]
+        res = cursor.fetchone()
+        dataset_id = res[0] if res is not None else -1
 
         # If dataset doesn't exist yet: Add new record.
         if dataset_id == -1:
@@ -94,22 +95,16 @@ class DBConnector:
         else:
             return dataset_id
 
-    def import_word_vectors(self, dataset_id, words, vectors):
+    def import_word_vectors(self, tuples_to_insert):
         """
         Import word vectors into database.
-        :param dataset_id:
-        :param words:
-        :param vectors:
+        :param tuples_to_insert: (word, vector, dataset ID)
         :return:
         """
         cursor = self.connection.cursor()
 
-        # 1. Generate tuples.
-        tuples_to_insert = []
-        for index in range(0, len(words)):
-            tuples_to_insert.append((words[index],
-                                     vectors[index],
-                                     dataset_id))
+        # 1. Drop foreign key constraint to dataset before import.
+        cursor.execute("ALTER TABLE tapas.word_vectors DROP CONSTRAINT IF EXISTS word_vectors_datasets")
 
         # 2. Write word vectors to DB.
         cursor.execute(cursor.mogrify("insert into "
@@ -119,3 +114,13 @@ class DBConnector:
                                       "         datasets_id) "
                                       " values " +
                                       ','.join(["%s"] * len(tuples_to_insert)), tuples_to_insert))
+
+        # 3. Reintroduce foreign key constraint.
+        cursor.execute("ALTER TABLE tapas.word_vectors ADD CONSTRAINT word_vectors_datasets "
+                       "FOREIGN KEY (datasets_id) "
+                       "REFERENCES tapas.datasets (id) "
+                       "NOT DEFERRABLE INITIALLY IMMEDIATE")
+
+        # 4. Commit changes.
+        self.connection.commit()
+

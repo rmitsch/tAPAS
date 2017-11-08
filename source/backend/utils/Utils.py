@@ -90,7 +90,7 @@ class Utils:
         return tmpfile
 
     @staticmethod
-    def connect_to_database():
+    def connect_to_database(reconstruct=False):
         """
         Create database connection.
         :return: Instance of DB connector.
@@ -101,6 +101,6 @@ class Utils:
                                    user="admin",
                                    password="password")
         # Construct database.
-        db_connector.construct_database(reconstruct=False)
+        db_connector.construct_database(reconstruct=reconstruct)
 
         return db_connector
