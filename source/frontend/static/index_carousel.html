@@ -88,7 +88,7 @@
         In order to create a new run, you have to set values for the initial parameters, weight the available
         measures so that the tool can come up with an aggregated scalar for the models' quality and finally
         pick the dataset you want to apply t-SNE on.
-        <div>
+        <div id="dataGenerationOptionsContainer">
             <div class="inlineBlock" id="nprDatasetContainer">
                 <h4>Dataset</h4>
                 <div class="newRunParameterHistograms" id="nrph1"></div>
@@ -101,11 +101,13 @@
                     </select>
                 </div>
             </div>
-            <div class="inlineBlock" id="nprNumberOfWordsDiv">
+            <div class="inlineBlock" id="nprNumberOfWordsContainer">
                 <h4>Number of words to use</h4>
-                <input class="nrpStepper" id="stepper_numberOfWords" type="number" value="0" step="1" min="0"/>
-                <div class="newRunParameterHistograms" id="nrph16"></div>
-                <input type="text" id="slider13" value="" name="slider13" />
+                <div class="inlineBlock">
+                    <div class="newRunParameterHistograms" id="nrph16"></div>
+                    <input type="text" id="slider13" value="" name="slider13" />
+                </div>
+                <input class="nrpStepper inlineBlock" id="stepper_numberOfWords" type="number" value="0" step="1" min="0"/>
             </div>
         </div>
         <hr>

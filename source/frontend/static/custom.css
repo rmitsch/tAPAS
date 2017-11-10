@@ -174,6 +174,7 @@ span.ui-slider-handle.ui-corner-all.ui-state-default {
     display: inline-block;
     postion: relative;
     top: 0px;
+    width: 96%;
 }
 
 div#initialParameterGrid span.irs-with-grid, div#measureWeightGrid span.irs-with-grid {
@@ -346,8 +347,43 @@ span.parameterLabel.noFontStyle {
 
 #nprNumberOfWordsContainer {
     vertical-align: top;
+    width: 200px;
+}
+
+#nprDatasetContainer {
+    width: 125pxK
 }
 
 #nprDatasetContainer h4 {
     margin-bottom: 0px;
+}
+
+#stepper_numberOfWords {
+    display: inline-block;
+    width: 40px;
+    margin-left: 10px;
+    position: relative;
+    top: -17px;
+}
+
+#nrph16 {
+    width: 120px;
+}
+
+#nrph1 {
+    margin-top: 17px;
+}
+
+#slider13 {
+    width: 125px;
+}
+
+#nprNumberOfWordsContainer span.irs.js-irs-0.irs-with-grid {
+    position: relative;
+    top: -35px;
+    width: 125px;
+}
+
+#dataGenerationOptionsContainer {
+    height: 150px;
 }

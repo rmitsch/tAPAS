@@ -1,5 +1,16 @@
+//Todos:
+//    - Add listener to model interaction between sliders/selects and steppers.
+//    - Read data from DB.
+//    - Highlight bar when selected value in it's interval? Decide and implement.
+//Should be possible on Saturday. After that:
+//    - Dashboard layout.
+//    - Dashboard implementation.
+//    - Start with PAELLA mock-up, iteration 2.
+//    - PAELLA: Update backend.
+
 // ************************************************************
 // ************************************************************
+
 /**
  * Define UI element references.
  */
@@ -12,6 +23,9 @@ chartElements = {
     menu_createrun: {
         dataset: {
             defaultValue: null,
+            minValue: null,
+            maxValue: null,
+            values: null,
             histogram: "nrph1",
             stepper: "stepper_numberOfWords",
             dropdown: "nrps1",
@@ -22,6 +36,10 @@ chartElements = {
 
         numWords: {
             defaultValue: 1000,
+            minValue: 1,
+            // maxValue is irrelevant since value will be set at dataset load.
+            maxValue: 1000,
+            values: null,
             histogram: "nrph16",
             stepper: "stepper_numberOfWords",
             dropdown: null,
@@ -32,6 +50,10 @@ chartElements = {
 
         numDimensions: {
             defaultValue: 2,
+            minValue: 1,
+            // Which value for max.?
+            maxValue: 5,
+            values: null,
             histogram: "nrph2",
             stepper: "stepper_numdim",
             dropdown: null,
@@ -42,6 +64,9 @@ chartElements = {
 
         perplexity: {
             defaultValue: 30,
+            minValue: 1,
+            maxValue: 100,
+            values: null,
             histogram: "nrph3",
             stepper: "stepper_perplexity",
             dropdown: null,
@@ -52,6 +77,9 @@ chartElements = {
 
         earlyExaggeration: {
             defaultValue: 12,
+            minValue: 1,
+            maxValue: 50,
+            values: null,
             histogram: "nrph4",
             stepper: "stepper_earlyExaggeration",
             dropdown: null,
@@ -62,6 +90,9 @@ chartElements = {
 
         learningRate: {
             defaultValue: 200,
+            minValue: 1,
+            maxValue: 5000,
+            values: null,
             histogram: "nrph5",
             stepper: "stepper_learningRate",
             dropdown: null,
@@ -71,7 +102,10 @@ chartElements = {
         },
 
         numIterations: {
-            defaultValue: 1000,
+            defaultValue: 2000,
+            minValue: 50,
+            maxValue: 10000,
+            values: null,
             histogram: "nrph6",
             stepper: "stepper_iterations",
             dropdown: null,
@@ -81,7 +115,16 @@ chartElements = {
         },
 
         minGradNorm: {
-            defaultValue: 0.0000001,
+            defaultValue: 1,
+            minValue: 1, // 0.0000000001
+            minValue: 10,
+            values: [
+                "10<sup>-10</sup>", "10<sup>-9</sup>",
+                "10<sup>-8</sup>", "10<sup>-7</sup>",
+                "10<sup>-6</sup>", "10<sup>-5</sup>",
+                "10<sup>-4</sup>", "10<sup>-3</sup>",
+                "10<sup>-2</sup>", "10<sup>-1</sup>",
+            ],
             histogram: "nrph7",
             stepper: "stepper_minGradNorm",
             dropdown: null,
@@ -92,6 +135,9 @@ chartElements = {
 
         randomState: {
             defaultValue: 42,
+            minValue: 1,
+            maxValue: 100,
+            values: null,
             histogram: "nrph8",
             stepper: "stepper_randomState",
             dropdown: null,
@@ -102,6 +148,9 @@ chartElements = {
 
         angle: {
             defaultValue: 0.5,
+            minValue: 0.1,
+            maxValue: 1,
+            values: null,
             histogram: "nrph9",
             stepper: "stepper_angle",
             dropdown: null,
@@ -112,6 +161,9 @@ chartElements = {
 
         metric: {
             defaultValue: "euclidean",
+            minValue: null,
+            maxValue: null,
+            values: null,
             histogram: "nrph10",
             stepper: null,
             dropdown: "nrps2",
@@ -122,6 +174,9 @@ chartElements = {
 
         initMethod: {
             defaultValue: "PCA",
+            minValue: null,
+            maxValue: null,
+            values: null,
             histogram: "nrph11",
             stepper: null,
             dropdown: "nrps3",
@@ -132,6 +187,9 @@ chartElements = {
 
         measureWeight_trustworthiness: {
             defaultValue: 1,
+            minValue: 0,
+            maxValue: 100,
+            values: null,
             histogram: "nrph12",
             stepper: "stepper_measureTrustworthiness",
             dropdown: null,
@@ -141,6 +199,9 @@ chartElements = {
 
         measureWeight_continuity: {
             defaultValue: 1,
+            minValue: 0,
+            maxValue: 100,
+            values: null,
             histogram: "nrph13",
             stepper: "stepper_measureContinuity",
             dropdown: null,
@@ -150,6 +211,9 @@ chartElements = {
 
         measureWeight_generalization: {
             defaultValue: 1,
+            minValue: 0,
+            maxValue: 100,
+            values: null,
             histogram: "nrph14",
             stepper: "stepper_generalizationAccuracy",
             dropdown: null,
@@ -159,6 +223,9 @@ chartElements = {
 
         measureWeight_relativeWEQ: {
             defaultValue: 1,
+            minValue: 0,
+            maxValue: 100,
+            values: null,
             histogram: "nrph15",
             stepper: "stepper_relativeWEQuality",
             dropdown: null,
@@ -167,7 +234,6 @@ chartElements = {
         }
     }
 };
-
 
 // ************************************************************
 // ************************************************************
@@ -201,22 +267,29 @@ function updateCarousel(menuItemID)
 
 function initSliders()
 {
-    for(var i = 1; i <= 12; i++) {
-        $("#slider" + i).ionRangeSlider({
-            hide_min_max: true,
-            keyboard: true,
-            min: 0,
-            max: 5000,
-            from: 1000,
-            to: 4000,
-            type: 'single',
-            step: 1,
-            grid: true,
-            prettify_enabled: true,
-            hide_min_max: true,
-            hide_from_to: true,
-            grid_num: 3
-        });
+    // Loop through all defined chart elements.
+    for (var key in chartElements["menu_createrun"]) {
+        var currElement = chartElements["menu_createrun"][key];
+
+        if (currElement["slider"] != null) {
+            console.log(currElement["values"]);
+            $("#" + currElement["slider"]).ionRangeSlider({
+                hide_min_max: true,
+                keyboard: true,
+                min: currElement["minValue"],
+                max: currElement["maxValue"],
+                from: currElement["defaultValue"],
+                type: 'single',
+                step: 1,
+                grid: true,
+                prettify_enabled: true,
+                hide_min_max: true,
+                hide_from_to: true,
+                grid_num: 3,
+                prettify_enabled: true,
+                values: currElement["values"] != null ? currElement["values"] : []
+            });
+        }
     }
 }
 
@@ -259,48 +332,61 @@ function initSlickCarousel()
     updateCarousel(selectedMenuItemID);
 }
 
+/**
+ * Initialize parameter histograms in view "Create new run".
+ */
 function initInitialParameterHistograms()
 {
-    for(var i = 1; i < 17; i++) {
-        var chart = c3.generate({
-            bindto: '#nrph' + i,
-            data: {
-                columns: [
-                    ['sample', 30, 200, 100, 200, 150, 250, 20, 80, 100, 400, 350, 10, 200, 200, 34, 521, 234]
-                ],
-                colors: {
-                    sample: '#3d4a57'
-                },
-                type: 'bar'
-            },
-            bar: {
-                width: {
-                    ratio: 0.9 // this makes bar width 50% of length between ticks
-                }
-            },
-            legend: {
-                show: false
-            },
-            tooltip: {
-                show: false
-            },
-            axis: {
-                    x: {show: false},
-                    y: {show: false}
-            },
-            size: {
-                height: 50
-            },
-            point: {
-                show: false
+    $(document).ready(function(){
+        // Loop through all defined chart elements.
+        for (var key in chartElements["menu_createrun"]) {
+            var currElement = chartElements["menu_createrun"][key];
+            // If element has histogram:
+            if (currElement["histogram"] != null) {
+                var chart = c3.generate({
+                    bindto: "#" + currElement["histogram"],
+                    data: {
+                        columns: [
+                            ['sample', 30, 200, 100, 200, 150, 250, 20, 80, 100, 400, 350, 10, 200, 200, 34, 521, 234]
+                        ],
+                        colors: {
+                            sample: '#3d4a57'
+                        },
+                        type: 'bar'
+                    },
+                    bar: {
+                        width: {
+                            ratio: 0.9 // this makes bar width 50% of length between ticks
+                        }
+                    },
+                    legend: {
+                        show: false
+                    },
+                    tooltip: {
+                        show: false
+                    },
+                    axis: {
+                            x: {show: false},
+                            y: {show: false}
+                    },
+                    size: {
+                        height: 50
+                    },
+                    point: {
+                        show: false
+                    }
+                });
             }
-        });
-    }
 
-    // Initialize "Fix value" toggle buttons.
-    for(var i = 1; i < 11; i++) {
-        $('#fixValueCheck' + i).lc_switch();
-    }
+            // Initialize "Fix value" toggle buttons.
+            if (currElement["toggleButton"] != null) {
+                $("#" + currElement["toggleButton"]).lc_switch();
+                // Change toggle according to definition.
+                if (currElement["fixedByDefault"])
+                    $("#" + currElement["toggleButton"]).lcs_on();
+            }
+        }
+    });
 }
 
 /*
