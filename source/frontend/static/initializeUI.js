@@ -1,4 +1,176 @@
+// ************************************************************
+// ************************************************************
+/**
+ * Define UI element references.
+ */
+
+// IDs of menu buttons.
 menuIDs = ["menu_start", "menu_upload", "menu_createrun", "menu_run"]
+
+// UI elements in page for creating new runs. Parameter names are used as keys on leaf-level.
+chartElements = {
+    menu_createrun: {
+        dataset: {
+            defaultValue: null,
+            histogram: "nrph1",
+            stepper: "stepper_numberOfWords",
+            dropdown: "nrps1",
+            toggleButton: null,
+            slider: null,
+            fixedByDefault: null
+        },
+
+        numWords: {
+            defaultValue: 1000,
+            histogram: "nrph16",
+            stepper: "stepper_numberOfWords",
+            dropdown: null,
+            toggleButton: null,
+            slider: "slider13",
+            fixedByDefault: null
+        },
+
+        numDimensions: {
+            defaultValue: 2,
+            histogram: "nrph2",
+            stepper: "stepper_numdim",
+            dropdown: null,
+            toggleButton: "fixValueCheck1",
+            slider: "slider1",
+            fixedByDefault: true
+        },
+
+        perplexity: {
+            defaultValue: 30,
+            histogram: "nrph3",
+            stepper: "stepper_perplexity",
+            dropdown: null,
+            toggleButton: "fixValueCheck2",
+            slider: "slider2",
+            fixedByDefault: false
+        },
+
+        earlyExaggeration: {
+            defaultValue: 12,
+            histogram: "nrph4",
+            stepper: "stepper_earlyExaggeration",
+            dropdown: null,
+            toggleButton: "fixValueCheck3",
+            slider: "slider3",
+            fixedByDefault: false
+        },
+
+        learningRate: {
+            defaultValue: 200,
+            histogram: "nrph5",
+            stepper: "stepper_learningRate",
+            dropdown: null,
+            toggleButton: "fixValueCheck4",
+            slider: "slider4",
+            fixedByDefault: false
+        },
+
+        numIterations: {
+            defaultValue: 1000,
+            histogram: "nrph6",
+            stepper: "stepper_iterations",
+            dropdown: null,
+            toggleButton: "fixValueCheck5",
+            slider: "slider5",
+            fixedByDefault: false
+        },
+
+        minGradNorm: {
+            defaultValue: 0.0000001,
+            histogram: "nrph7",
+            stepper: "stepper_minGradNorm",
+            dropdown: null,
+            toggleButton: "fixValueCheck6",
+            slider: "slider6",
+            fixedByDefault: false
+        },
+
+        randomState: {
+            defaultValue: 42,
+            histogram: "nrph8",
+            stepper: "stepper_randomState",
+            dropdown: null,
+            toggleButton: "fixValueCheck7",
+            slider: "slider7",
+            fixedByDefault: true
+        },
+
+        angle: {
+            defaultValue: 0.5,
+            histogram: "nrph9",
+            stepper: "stepper_angle",
+            dropdown: null,
+            toggleButton: "fixValueCheck8",
+            slider: "slider8",
+            fixedByDefault: false
+        },
+
+        metric: {
+            defaultValue: "euclidean",
+            histogram: "nrph10",
+            stepper: null,
+            dropdown: "nrps2",
+            toggleButton: "fixValueCheck9",
+            slider: null,
+            fixedByDefault: true
+        },
+
+        initMethod: {
+            defaultValue: "PCA",
+            histogram: "nrph11",
+            stepper: null,
+            dropdown: "nrps3",
+            toggleButton: "fixValueCheck10",
+            slider: null,
+            fixedByDefault: true
+        },
+
+        measureWeight_trustworthiness: {
+            defaultValue: 1,
+            histogram: "nrph12",
+            stepper: "stepper_measureTrustworthiness",
+            dropdown: null,
+            toggleButton: null,
+            slider: "slider9"
+        },
+
+        measureWeight_continuity: {
+            defaultValue: 1,
+            histogram: "nrph13",
+            stepper: "stepper_measureContinuity",
+            dropdown: null,
+            toggleButton: null,
+            slider: "slider10"
+        },
+
+        measureWeight_generalization: {
+            defaultValue: 1,
+            histogram: "nrph14",
+            stepper: "stepper_generalizationAccuracy",
+            dropdown: null,
+            toggleButton: null,
+            slider: "slider11"
+        },
+
+        measureWeight_relativeWEQ: {
+            defaultValue: 1,
+            histogram: "nrph15",
+            stepper: "stepper_relativeWEQuality",
+            dropdown: null,
+            toggleButton: null,
+            slider: "slider12"
+        }
+    }
+};
+
+
+// ************************************************************
+// ************************************************************
 
 function updateCarousel(menuItemID)
 {
@@ -163,6 +335,7 @@ function initChunkedFileUpload()
 
 
 $(document).ready(function(){
+    // Fetch carousel content.
     $.ajax({
         url: '/carousel_content',
         type: 'POST',

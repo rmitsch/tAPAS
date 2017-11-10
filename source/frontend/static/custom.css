@@ -236,10 +236,6 @@ div.splash-text div.pure-g input.nrpStepper {
     height: 75px;
 }
 
-#nprDatasetHeader {
-    margin-bottom: 0px;
-}
-
 #initialParameterGrid {
     height: 300px;
 }
@@ -337,4 +333,21 @@ span.parameterLabel.noFontStyle {
 #vectorFileUpload img {
     margin-left: auto;
     margin-right: auto;
+}
+
+.inlineBlock {
+    display: inline-block;
+}
+
+#nprDatasetContainer {
+    vertical-align: top;
+    margin-right: 30px;
+}
+
+#nprNumberOfWordsContainer {
+    vertical-align: top;
+}
+
+#nprDatasetContainer h4 {
+    margin-bottom: 0px;
 }

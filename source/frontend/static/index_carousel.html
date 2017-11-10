@@ -88,15 +88,25 @@
         In order to create a new run, you have to set values for the initial parameters, weight the available
         measures so that the tool can come up with an aggregated scalar for the models' quality and finally
         pick the dataset you want to apply t-SNE on.
-        <h4 id="nprDatasetHeader">Dataset</h4>
-        <div class="newRunParameterHistograms" id="nrph1"></div>
-        <div class="styled-select default semi-square" id="datasetSelect">
-            <select class="datasetSelect">
-                <option value="volvo">Volvo</option>
-                <option value="saab">Saab</option>
-                <option value="mercedes">Mercedes</option>
-                <option value="audi">Audi</option>
-            </select>
+        <div>
+            <div class="inlineBlock" id="nprDatasetContainer">
+                <h4>Dataset</h4>
+                <div class="newRunParameterHistograms" id="nrph1"></div>
+                <div class="styled-select default semi-square" id="datasetSelect">
+                    <select class="datasetSelect" id="nrps1">
+                        <option value="volvo">Volvo</option>
+                        <option value="saab">Saab</option>
+                        <option value="mercedes">Mercedes</option>
+                        <option value="audi">Audi</option>
+                    </select>
+                </div>
+            </div>
+            <div class="inlineBlock" id="nprNumberOfWordsDiv">
+                <h4>Number of words to use</h4>
+                <input class="nrpStepper" id="stepper_numberOfWords" type="number" value="0" step="1" min="0"/>
+                <div class="newRunParameterHistograms" id="nrph16"></div>
+                <input type="text" id="slider13" value="" name="slider13" />
+            </div>
         </div>
         <hr>
         <h4>Initial Hyperparameters</h4>
@@ -120,7 +130,7 @@
             <div class="pure-u-1-6">
                 <span class="parameterLabel">Early exagg.</span>
                 <span class="parameterLabel noFontStyle">Fix value</span>
-                <input class="nrpStepper" id="stepper_earlyExxageration" type="number" value="0" step="1" min="0"/>
+                <input class="nrpStepper" id="stepper_earlyExaggeration" type="number" value="0" step="1" min="0"/>
                 <input type="checkbox" name="fixValueCheck3" id="fixValueCheck3" value="4" class="lcs_check" autocomplete="off" />
                 <div class="newRunParameterHistograms" id="nrph4"></div>
                 <input type="text" id="slider3" value="" name="slider3" />
@@ -142,7 +152,7 @@
                 <input type="text" id="slider5" value="" name="slider5" />
             </div>
             <div class="pure-u-1-6">
-                <span class="parameterLabel">Min grad norm</span>
+                <span class="parameterLabel">Min. grad. norm</span>
                 <span class="parameterLabel noFontStyle">Fix value</span>
                 <input class="nrpStepper" id="stepper_minGradNorm" type="number" value="0" step="1" min="0"/>
                 <input type="checkbox" name="fixValueCheck6" id="fixValueCheck6" value="4" class="lcs_check" autocomplete="off" />
@@ -171,11 +181,28 @@
                 <div class="newRunParameterHistograms" id="nrph10"></div>
                 <input type="checkbox" name="fixValueCheck9" id="fixValueCheck9" value="4" class="lcs_check" autocomplete="off" />
                 <div class="styled-select default semi-square">
-                    <select>
-                        <option value="volvo">Volvo</option>
-                        <option value="saab">Saab</option>
-                        <option value="mercedes">Mercedes</option>
-                        <option value="audi">Audi</option>
+                    <select id="nrps2">
+                        <option value="braycurtis">braycurtis</option>
+                        <option value="canberra">canberra</option>
+                        <option value="chebyshev">chebyshev</option>
+                        <option value="cityblock">cityblock</option>
+                        <option value="correlation">correlation</option>
+                        <option value="cosine">cosine</option>
+                        <option value="dice">dice</option>
+                        <option value="euclidean">euclidean</option>
+                        <option value="hamming">hamming</option>
+                        <option value="jaccard">jaccard</option>
+                        <option value="kulsinski">kulsinski</option>
+                        <option value="mahalanobis">mahalanobis</option>
+                        <option value="matching">matching</option>
+                        <option value="minkowski">minkowski</option>
+                        <option value="rogerstanimoto">rogerstanimoto</option>
+                        <option value="russellrao">russellrao</option>
+                        <option value="seuclidean">seuclidean</option>
+                        <option value="sokalmichener">sokalmichener</option>
+                        <option value="sokalsneath">sokalsneath</option>
+                        <option value="sqeuclidean">sqeuclidean</option>
+                        <option value="yule">yule</option>
                     </select>
                 </div>
             </div>
@@ -185,11 +212,9 @@
                 <div class="newRunParameterHistograms" id="nrph11"></div>
                 <input type="checkbox" name="fixValueCheck10" id="fixValueCheck10" value="4" class="lcs_check" autocomplete="off" />
                 <div class="styled-select default semi-square">
-                    <select>
-                        <option value="volvo">Volvo</option>
-                        <option value="saab">Saab</option>
-                        <option value="mercedes">Mercedes</option>
-                        <option value="audi">Audi</option>
+                    <select id="nrps3">
+                        <option value="random">Random</option>
+                        <option value="PCA">PCA</option>
                     </select>
                 </div>
             </div>
