@@ -12,7 +12,7 @@ from backend.algorithm.WordVector import WordVector
 import logging
 import psycopg2
 import werkzeug
-
+from flask import jsonify
 
 def init_flask_app():
     """
@@ -30,23 +30,18 @@ def init_flask_app():
 
 # Initialize logger.
 logger = Utils.create_logger()
-# Connect to database.
-db_connector = Utils.connect_to_database(False)
 # Initialize flask app.
 app = init_flask_app()
-
+# Connect to database.
+app.config["DB_CONNECTOR"] = Utils.connect_to_database(False)
 # Define version.
-version = "0.1"
-# # Buffer for storing last line, if it's interrupted by chunking.
-# interrupted_last_line_buffer = None
-# # Store number of dimensions for current dataset.
-# num_dimensions = -1
+app.config["VERSION"] = "0.1"
 
 
 # root: Render HTML for start menu.
 @app.route("/")
 def index():
-    return render_template("index.html", version=version, entrypoint="about")
+    return render_template("index.html", version=app.config["VERSION"], entrypoint="about")
 
 
 @app.route('/', defaults={'path': ''}, methods=['POST'])
@@ -80,7 +75,7 @@ def upload(path):
         WordVector.extract_number_of_dimensions(file_chunk)
 
     # Create entry in datasets, if it doesn't exist yet. Otherwise just fetch ID.
-    dataset_id = db_connector.import_dataset(
+    dataset_id = app.config["DB_CONNECTOR"].import_dataset(
         request.args['resumableFilename'],
         WordVector.num_dimensions
     )
@@ -92,36 +87,19 @@ def upload(path):
         dataset_id=dataset_id)
 
     # Insert vectors in this chunk into DB.
-    db_connector.import_word_vectors(tuples_to_insert)
+    app.config["DB_CONNECTOR"].import_word_vectors(tuples_to_insert)
 
     return "200"
 
-# /about
-# @app.route("/about")
-# def about():
-#     return render_template("index.html", version=version, entrypoint="about")
-#
-#
-# # /upload
-# @app.route("/upload")
-# def upload():
-#     return render_template("index.html", version=version, entrypoint="upload")
-#
-#
-# # /about
-# @app.route("/createrun")
-# def createrun():
-#     return render_template("index.html", version=version, entrypoint="createrun")
-#
-#
-# # /about
-# @app.route("/run")
-# def run():
-#     return render_template("index.html", version=version, entrypoint="run")
 
 @app.route('/carousel_content', methods=["GET", "POST"])
-def fetch():
+def fetch_carousel():
     return app.send_static_file('index_carousel.html')
+
+
+@app.route('/dataset_metadata', methods=["GET", "POST"])
+def fetch_dataset_metadata():
+    return jsonify(app.config["DB_CONNECTOR"].read_first_run_metadata())
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=7182, debug=True)

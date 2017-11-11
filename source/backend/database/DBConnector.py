@@ -7,7 +7,7 @@ import psycopg2
 import sys
 import logging
 import numpy
-
+import json
 
 class DBConnector:
     """
@@ -124,3 +124,57 @@ class DBConnector:
         # 4. Commit changes.
         self.connection.commit()
 
+    def read_first_run_metadata(self):
+        """
+        Reads metadata for all first runs in database.
+        Used in view "Generate new run".
+        :return:
+        """
+        cursor = self.connection.cursor()
+
+        cursor.execute("select "
+                       "  row_to_json(t) "
+                       "from ("
+                       "  select "
+                       "   d.name as dataset, "
+                       "   r.measure_weight_trustworthiness as measureWeight_trustworthiness, "
+                       "   r.measure_weight_continuity as measureWeight_continuity, "
+                       "   r.measure_weight_generalization_accuracy as measureWeight_generalization, "
+                       "   r.measure_weight_we_information_ratio as measureWeight_relativeWEQ, "
+                       "   r.init_n_components as numDimensions, "
+                       "   r.init_perplexity as perplexity, "
+                       "   r.init_early_exaggeration as earlyExaggeration, "
+                       "   r.init_learning_rate as learningRate, "
+                       "   r.init_n_iter as numIterations, "
+                       "   r.init_min_grad_norm as minGradNorm, "
+                       "   r.init_metric as metric, "
+                       "   r.init_init_method as initMethod, "
+                       "   r.init_random_state as randomState, "
+                       "   r.init_angle as angle, "
+                       "   count(distinct wv.id) as numWords"
+                       " from "
+                       "   tapas.datasets d "
+                       " inner join tapas.runs r on "
+                       "   r.datasets_id = d.id "
+                       " inner join tapas.word_vectors wv on "
+                       "   wv.datasets_id = d.id "
+                       "  group by "
+                       "   d.name, "
+                       "   r.measure_weight_trustworthiness, "
+                       "   r.measure_weight_continuity, "
+                       "   r.measure_weight_generalization_accuracy, "
+                       "   r.measure_weight_we_information_ratio, "
+                       "   r.init_n_components, "
+                       "   r.init_perplexity, "
+                       "   r.init_early_exaggeration, "
+                       "   r.init_learning_rate, "
+                       "   r.init_n_iter, "
+                       "   r.init_min_grad_norm, "
+                       "   r.init_metric, "
+                       "   r.init_init_method, "
+                       "   r.init_random_state, "
+                       "   r.init_angle "
+                       ") t ")
+        res = cursor.fetchall()
+
+        return [row[0] for row in res]

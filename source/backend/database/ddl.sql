@@ -15,7 +15,7 @@ CREATE TABLE tapas.datasets (
 );
 
 -- Table: run
-CREATE TABLE tapas.run (
+CREATE TABLE tapas.runs (
     id serial  NOT NULL,
     title text  NULL,
     description text  NULL,
@@ -76,7 +76,7 @@ CREATE TABLE tapas.word_vectors_in_tsne_models (
 
 -- foreign keys
 -- Reference: run_datasets (table: run)
-ALTER TABLE tapas.run ADD CONSTRAINT run_datasets
+ALTER TABLE tapas.runs ADD CONSTRAINT run_datasets
     FOREIGN KEY (datasets_id)
     REFERENCES tapas.datasets (id)  
     NOT DEFERRABLE 
@@ -86,7 +86,7 @@ ALTER TABLE tapas.run ADD CONSTRAINT run_datasets
 -- Reference: tsne_models_run (table: tsne_models)
 ALTER TABLE tapas.tsne_models ADD CONSTRAINT tsne_models_run
     FOREIGN KEY (run_id)
-    REFERENCES tapas.run (id)  
+    REFERENCES tapas.runs (id)
     NOT DEFERRABLE 
     INITIALLY IMMEDIATE
 ;

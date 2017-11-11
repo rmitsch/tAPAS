@@ -1,12 +1,17 @@
 //Todos:
-//    - Add listener to model interaction between sliders/selects and steppers.
-//    - Read data from DB.
-//    - Highlight bar when selected value in it's interval? Decide and implement.
-//Should be possible on Saturday. After that:
-//    - Dashboard layout.
-//    - Dashboard implementation.
-//    - Start with PAELLA mock-up, iteration 2.
-//    - PAELLA: Update backend.
+//    Continue with binData().
+//        - Bin numerical data with d3.histograms
+//        - Bin categorical data by looping through data, racking up counts in dictionary,
+//          then sorting it alphabetically.
+//        - Display data in barcharts.
+//        - Highlight currently selected bar (optional).
+//        - Store new run in DB.
+//        - Show pop-up/message confirming new entry in DB.
+//        - Proceed with dasboard (layout).
+//        - Dashboard implementation.
+//        - Start with PAELLA mock-up, iteration 2.
+//        - PAELLA: Update backend.
+//    Estimated start of dashboard layouting: 15th - 18th of November.
 
 // ************************************************************
 // ************************************************************
@@ -27,6 +32,7 @@ chartElements = {
             maxValue: null,
             stepValue: null,
             values: null,
+            type: "categorical",
             histogram: "nrph1",
             stepper: "stepper_numberOfWords",
             dropdown: "nrps1",
@@ -42,6 +48,7 @@ chartElements = {
             maxValue: 1000,
             stepValue: 1,
             values: null,
+            type: "numerical",
             histogram: "nrph16",
             stepper: "stepper_numberOfWords",
             dropdown: null,
@@ -57,6 +64,7 @@ chartElements = {
             maxValue: 5,
             stepValue: 1,
             values: null,
+            type: "numerical",
             histogram: "nrph2",
             stepper: "stepper_numdim",
             dropdown: null,
@@ -71,6 +79,7 @@ chartElements = {
             maxValue: 100,
             stepValue: 1,
             values: null,
+            type: "numerical",
             histogram: "nrph3",
             stepper: "stepper_perplexity",
             dropdown: null,
@@ -85,6 +94,7 @@ chartElements = {
             maxValue: 50,
             stepValue: 1,
             values: null,
+            type: "numerical",
             histogram: "nrph4",
             stepper: "stepper_earlyExaggeration",
             dropdown: null,
@@ -99,6 +109,7 @@ chartElements = {
             maxValue: 5000,
             stepValue: 1,
             values: null,
+            type: "numerical",
             histogram: "nrph5",
             stepper: "stepper_learningRate",
             dropdown: null,
@@ -113,6 +124,7 @@ chartElements = {
             maxValue: 10000,
             stepValue: 1,
             values: null,
+            type: "numerical",
             histogram: "nrph6",
             stepper: "stepper_iterations",
             dropdown: null,
@@ -133,6 +145,7 @@ chartElements = {
                 "10<sup>-4</sup>", "10<sup>-3</sup>",
                 "10<sup>-2</sup>", "10<sup>-1</sup>",
             ],
+            type: "numerical",
             histogram: "nrph7",
             stepper: "stepper_minGradNorm",
             dropdown: null,
@@ -147,6 +160,7 @@ chartElements = {
             maxValue: 100,
             stepValue: 1,
             values: null,
+            type: "numerical",
             histogram: "nrph8",
             stepper: "stepper_randomState",
             dropdown: null,
@@ -161,6 +175,7 @@ chartElements = {
             maxValue: 1.0,
             stepValue: 0.1,
             values: null,
+            type: "numerical",
             histogram: "nrph9",
             stepper: "stepper_angle",
             dropdown: null,
@@ -175,6 +190,7 @@ chartElements = {
             maxValue: null,
             stepValue: null,
             values: null,
+            type: "categorical",
             histogram: "nrph10",
             stepper: null,
             dropdown: "nrps2",
@@ -189,6 +205,7 @@ chartElements = {
             maxValue: null,
             stepValue: null,
             values: null,
+            type: "categorical",
             histogram: "nrph11",
             stepper: null,
             dropdown: "nrps3",
@@ -203,6 +220,7 @@ chartElements = {
             maxValue: 100,
             stepValue: 1,
             values: null,
+            type: "numerical",
             histogram: "nrph12",
             stepper: "stepper_measureTrustworthiness",
             dropdown: null,
@@ -216,6 +234,7 @@ chartElements = {
             maxValue: 100,
             stepValue: 1,
             values: null,
+            type: "numerical",
             histogram: "nrph13",
             stepper: "stepper_measureContinuity",
             dropdown: null,
@@ -229,6 +248,7 @@ chartElements = {
             maxValue: 100,
             stepValue: 1,
             values: null,
+            type: "numerical",
             histogram: "nrph14",
             stepper: "stepper_generalizationAccuracy",
             dropdown: null,
@@ -242,6 +262,7 @@ chartElements = {
             maxValue: 100,
             stepValue: 1,
             values: null,
+            type: "numerical",
             histogram: "nrph15",
             stepper: "stepper_relativeWEQuality",
             dropdown: null,
@@ -287,9 +308,16 @@ function initSliders()
 {
     // Loop through all defined chart elements.
     for (var key in chartElements["menu_createrun"]) {
-        var currElement = chartElements["menu_createrun"][key];
+        let currElement = chartElements["menu_createrun"][key];
 
         if (currElement["slider"] != null) {
+            // Fetch corresponding stepper element.
+            let stepper = null;
+            if (currElement["stepper"] != null) {
+                stepper = $("#" + currElement["stepper"])[0];
+            }
+
+            // Initialize slider.
             $("#" + currElement["slider"]).ionRangeSlider({
                 hide_min_max: true,
                 keyboard: true,
@@ -304,12 +332,22 @@ function initSliders()
                 hide_from_to: true,
                 grid_num: 3,
                 prettify_enabled: true,
-                values: currElement["values"] != null ? currElement["values"] : []
+                values: currElement["values"] != null ? currElement["values"] : [],
+                // Define hooks to steppers.
+                onChange: function (data) {
+                    // Fetch corresponding stepper element.
+                    if (stepper != null) {
+                        stepper.value = data.from;
+                    }
+                }
             });
         }
     }
 }
 
+/**
+ * Initializes carousel functionality.
+ */
 function initSlickCarousel()
 {
     carousel = $('.carousel');
@@ -350,21 +388,49 @@ function initSlickCarousel()
 }
 
 /**
- * Initialize parameter histograms and toggle buttons in view "Create new run".
+ * Bins data. Used for preparing histogram data for c3.js.
+ * @param data Array of records indexed with IDs from chartElements.
+ * @param config Configuration object.
+ * @param numberOfBins
  */
-function initInitialParameterHistograms()
+function binData(data, config, numberOfBins)
+{
+    binnedData = [3, 4];
+    console.log(binnedData);
+
+    if (config["type"] == "numerical") {
+    }
+
+    else if (config["type"] == "categorical") {
+        for (let i = 0; i < data.length; i++)
+            console.log(data[i]);
+    }
+
+    return binnedData;
+}
+
+/**
+ * Initialize parameter histograms and toggle buttons in view "Create new run".
+ * @param dataset_metadata
+ */
+function initInitialParameterHistograms(dataset_metadata)
 {
     $(document).ready(function(){
         // Loop through all defined chart elements.
         for (var key in chartElements["menu_createrun"]) {
-            var currElement = chartElements["menu_createrun"][key];
+            let currElement = chartElements["menu_createrun"][key];
+
+            // Bin data.
+            binnedData = binData(dataset_metadata, currElement, 10);
+            binnedData.unshift(key);
+
             // If element has histogram:
             if (currElement["histogram"] != null) {
                 var chart = c3.generate({
                     bindto: "#" + currElement["histogram"],
                     data: {
                         columns: [
-                            ['sample', 30, 200, 100, 200, 150, 250, 20, 80, 100, 400, 350, 10, 200, 200, 34, 521, 234]
+                            binnedData
                         ],
                         colors: {
                             sample: '#3d4a57'
@@ -412,34 +478,28 @@ function initInitialParameterHistograms()
 function initSteppers()
 {
     $(document).ready(function(){
-            // Loop through all defined chart elements.
-            for (var key in chartElements["menu_createrun"]) {
-                var currElement = chartElements["menu_createrun"][key];
+        // Loop through all defined chart elements.
+        for (var key in chartElements["menu_createrun"]) {
+            let currElement = chartElements["menu_createrun"][key];
 
-                if (currElement["stepper"] != null) {
-                    // Why does jquery return an array with length 1 here?
-                    stepper = $("#" + currElement["stepper"])[0];
-                    // Set thresholds and intial value.
-                    stepper.min     = currElement.minValue;
-                    stepper.max     = currElement.maxValue;
-                    stepper.value   = currElement.defaultValue;
-                    stepper.step    = currElement.stepValue;
-                    stepper.slider = $("#" + currElement["slider"]).data("ionRangeSlider");
+            if (currElement["stepper"] != null) {
+                // Why does jquery return an array with length 1 here?
+                stepper = $("#" + currElement["stepper"])[0];
+                // Set thresholds and intial value.
+                stepper.min     = currElement.minValue;
+                stepper.max     = currElement.maxValue;
+                stepper.value   = currElement.defaultValue;
+                stepper.step    = currElement.stepValue;
+                let slider      = $("#" + currElement["slider"]).data("ionRangeSlider");
 
-                    // Add event listener on input change.
-                    stepper.addEventListener("input", function(e) {
-                        var num = stepper.value;
-                        console.log(e.target.value);
-
-                        if (e.target.slider != null) {
-                            e.target.slider.update({
-                                from: e.target.value
-                            });
-
-                        }
+                // Add event listener on input change.
+                stepper.addEventListener("input", function(e) {
+                    slider.update({
+                        from: e.target.value
                     });
-                }
+                });
             }
+        }
     });
 }
 
@@ -482,20 +542,27 @@ $(document).ready(function(){
         success: function(html_data) {
             $(".carousel").html(html_data);
 
-            // Initializing sliders.
-            initSliders();
+            // Get information on datasets in database.
+            $.ajax({
+                url: '/dataset_metadata',
+                type: 'POST',
+                success: function(dataset_metadata) {
+                    // Initializing carousel functionality.
+                    initSlickCarousel();
 
-            // Initializing initial parameter histograms.
-            initInitialParameterHistograms();
+                    // Initializing sliders.
+                    initSliders();
 
-            // Initializing carousel functionality.
-            initSlickCarousel();
+                    // Initializing initial parameter histograms.
+                    initInitialParameterHistograms(dataset_metadata);
 
-            // Initialize chunked file upload.
-            initChunkedFileUpload();
+                    // Initialize steppers.
+                    initSteppers();
 
-            // Initialize steppers.
-            initSteppers();
+                    // Initialize chunked file upload.
+                    initChunkedFileUpload();
+                }
+            });
         }
     });
 });
