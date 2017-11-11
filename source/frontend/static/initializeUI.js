@@ -25,6 +25,7 @@ chartElements = {
             defaultValue: null,
             minValue: null,
             maxValue: null,
+            stepValue: null,
             values: null,
             histogram: "nrph1",
             stepper: "stepper_numberOfWords",
@@ -39,6 +40,7 @@ chartElements = {
             minValue: 1,
             // maxValue is irrelevant since value will be set at dataset load.
             maxValue: 1000,
+            stepValue: 1,
             values: null,
             histogram: "nrph16",
             stepper: "stepper_numberOfWords",
@@ -53,6 +55,7 @@ chartElements = {
             minValue: 1,
             // Which value for max.?
             maxValue: 5,
+            stepValue: 1,
             values: null,
             histogram: "nrph2",
             stepper: "stepper_numdim",
@@ -66,6 +69,7 @@ chartElements = {
             defaultValue: 30,
             minValue: 1,
             maxValue: 100,
+            stepValue: 1,
             values: null,
             histogram: "nrph3",
             stepper: "stepper_perplexity",
@@ -79,6 +83,7 @@ chartElements = {
             defaultValue: 12,
             minValue: 1,
             maxValue: 50,
+            stepValue: 1,
             values: null,
             histogram: "nrph4",
             stepper: "stepper_earlyExaggeration",
@@ -92,6 +97,7 @@ chartElements = {
             defaultValue: 200,
             minValue: 1,
             maxValue: 5000,
+            stepValue: 1,
             values: null,
             histogram: "nrph5",
             stepper: "stepper_learningRate",
@@ -105,6 +111,7 @@ chartElements = {
             defaultValue: 2000,
             minValue: 50,
             maxValue: 10000,
+            stepValue: 1,
             values: null,
             histogram: "nrph6",
             stepper: "stepper_iterations",
@@ -115,9 +122,10 @@ chartElements = {
         },
 
         minGradNorm: {
-            defaultValue: 1,
-            minValue: 1, // 0.0000000001
-            minValue: 10,
+            defaultValue: -7,
+            minValue: -10, // 0.0000000001
+            maxValue: -1,
+            stepValue: 1,
             values: [
                 "10<sup>-10</sup>", "10<sup>-9</sup>",
                 "10<sup>-8</sup>", "10<sup>-7</sup>",
@@ -137,6 +145,7 @@ chartElements = {
             defaultValue: 42,
             minValue: 1,
             maxValue: 100,
+            stepValue: 1,
             values: null,
             histogram: "nrph8",
             stepper: "stepper_randomState",
@@ -149,7 +158,8 @@ chartElements = {
         angle: {
             defaultValue: 0.5,
             minValue: 0.1,
-            maxValue: 1,
+            maxValue: 1.0,
+            stepValue: 0.1,
             values: null,
             histogram: "nrph9",
             stepper: "stepper_angle",
@@ -163,6 +173,7 @@ chartElements = {
             defaultValue: "euclidean",
             minValue: null,
             maxValue: null,
+            stepValue: null,
             values: null,
             histogram: "nrph10",
             stepper: null,
@@ -176,6 +187,7 @@ chartElements = {
             defaultValue: "PCA",
             minValue: null,
             maxValue: null,
+            stepValue: null,
             values: null,
             histogram: "nrph11",
             stepper: null,
@@ -189,6 +201,7 @@ chartElements = {
             defaultValue: 1,
             minValue: 0,
             maxValue: 100,
+            stepValue: 1,
             values: null,
             histogram: "nrph12",
             stepper: "stepper_measureTrustworthiness",
@@ -201,6 +214,7 @@ chartElements = {
             defaultValue: 1,
             minValue: 0,
             maxValue: 100,
+            stepValue: 1,
             values: null,
             histogram: "nrph13",
             stepper: "stepper_measureContinuity",
@@ -213,6 +227,7 @@ chartElements = {
             defaultValue: 1,
             minValue: 0,
             maxValue: 100,
+            stepValue: 1,
             values: null,
             histogram: "nrph14",
             stepper: "stepper_generalizationAccuracy",
@@ -225,6 +240,7 @@ chartElements = {
             defaultValue: 1,
             minValue: 0,
             maxValue: 100,
+            stepValue: 1,
             values: null,
             histogram: "nrph15",
             stepper: "stepper_relativeWEQuality",
@@ -264,7 +280,9 @@ function updateCarousel(menuItemID)
     }
 }
 
-
+/**
+ * Initializes sliders.
+ */
 function initSliders()
 {
     // Loop through all defined chart elements.
@@ -272,7 +290,6 @@ function initSliders()
         var currElement = chartElements["menu_createrun"][key];
 
         if (currElement["slider"] != null) {
-            console.log(currElement["values"]);
             $("#" + currElement["slider"]).ionRangeSlider({
                 hide_min_max: true,
                 keyboard: true,
@@ -280,7 +297,7 @@ function initSliders()
                 max: currElement["maxValue"],
                 from: currElement["defaultValue"],
                 type: 'single',
-                step: 1,
+                step: currElement["stepValue"],
                 grid: true,
                 prettify_enabled: true,
                 hide_min_max: true,
@@ -333,7 +350,7 @@ function initSlickCarousel()
 }
 
 /**
- * Initialize parameter histograms in view "Create new run".
+ * Initialize parameter histograms and toggle buttons in view "Create new run".
  */
 function initInitialParameterHistograms()
 {
@@ -389,6 +406,43 @@ function initInitialParameterHistograms()
     });
 }
 
+/**
+ * Initializes steppers.
+ */
+function initSteppers()
+{
+    $(document).ready(function(){
+            // Loop through all defined chart elements.
+            for (var key in chartElements["menu_createrun"]) {
+                var currElement = chartElements["menu_createrun"][key];
+
+                if (currElement["stepper"] != null) {
+                    // Why does jquery return an array with length 1 here?
+                    stepper = $("#" + currElement["stepper"])[0];
+                    // Set thresholds and intial value.
+                    stepper.min     = currElement.minValue;
+                    stepper.max     = currElement.maxValue;
+                    stepper.value   = currElement.defaultValue;
+                    stepper.step    = currElement.stepValue;
+                    stepper.slider = $("#" + currElement["slider"]).data("ionRangeSlider");
+
+                    // Add event listener on input change.
+                    stepper.addEventListener("input", function(e) {
+                        var num = stepper.value;
+                        console.log(e.target.value);
+
+                        if (e.target.slider != null) {
+                            e.target.slider.update({
+                                from: e.target.value
+                            });
+
+                        }
+                    });
+                }
+            }
+    });
+}
+
 /*
  * Use resume.js to upload massive files chunked.
  */
@@ -439,6 +493,9 @@ $(document).ready(function(){
 
             // Initialize chunked file upload.
             initChunkedFileUpload();
+
+            // Initialize steppers.
+            initSteppers();
         }
     });
 });

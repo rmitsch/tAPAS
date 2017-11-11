@@ -31,7 +31,7 @@ def init_flask_app():
 # Initialize logger.
 logger = Utils.create_logger()
 # Connect to database.
-db_connector = Utils.connect_to_database(True)
+db_connector = Utils.connect_to_database(False)
 # Initialize flask app.
 app = init_flask_app()
 
