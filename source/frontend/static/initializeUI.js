@@ -1,12 +1,12 @@
 //Todos:
 //    Continue with binData().
+//        - Write route to store data for new run in DB.
+//        - Show pop-up/message confirming new entry in DB.
 //        - Bin numerical data with d3.histograms
 //        - Bin categorical data by looping through data, racking up counts in dictionary,
 //          then sorting it alphabetically.
 //        - Display data in barcharts.
 //        - Highlight currently selected bar (optional).
-//        - Store new run in DB.
-//        - Show pop-up/message confirming new entry in DB.
 //        - Proceed with dasboard (layout).
 //        - Dashboard implementation.
 //        - Start with PAELLA mock-up, iteration 2.
@@ -42,8 +42,8 @@ chartElements = {
         },
 
         numWords: {
-            defaultValue: 1000,
-            minValue: 1,
+            defaultValue: 10000,
+            minValue: 1000,
             // maxValue is irrelevant since value will be set at dataset load.
             maxValue: 1000,
             stepValue: 1,
@@ -135,7 +135,7 @@ chartElements = {
 
         minGradNorm: {
             defaultValue: -7,
-            minValue: -10, // 0.0000000001
+            minValue: -10,
             maxValue: -1,
             stepValue: 1,
             values: [
@@ -275,6 +275,28 @@ chartElements = {
 // ************************************************************
 // ************************************************************
 
+function createNewRun()
+{
+    // Gather values for all parameters.
+    parameters = {};
+    for (var key in chartElements["menu_createrun"]) {
+        let currElement = chartElements["menu_createrun"][key];
+
+        // If slider exists: Read value from there.
+        if (currElement["slider"] != null) {
+            parameters[key] = $("#" + currElement["slider"]).data("ionRangeSlider")["result"]["from"];
+        }
+
+        // If no slider here: With current structure element has to have a select.
+        else if (currElement["dropdown"] != null) {
+            parameters[key] = $("#" + currElement["dropdown"])[0].value;
+        }
+    }
+
+    console.log(parameters);
+
+}
+
 function updateCarousel(menuItemID)
 {
     for(var i = 0; i < menuIDs.length; i++) {
@@ -299,6 +321,68 @@ function updateCarousel(menuItemID)
             $( "#runopt_dialog" ).dialog("close");
         });
     }
+}
+
+/**
+ * Initializes component for dataset selection (@create new run).
+ */
+function initDatasetSelect()
+{
+    $(document).ready(function(){
+        var datasetSelect = $("#nrps1")[0];
+
+        // Load datasets into corresponding selects.
+        $.ajax({
+            url: '/dataset_word_counts',
+            type: 'POST',
+            success: function(html_data) {
+                if (html_data.length > 0 && datasetSelect.options.length == 0) {
+                    for(let i = 0; i < html_data.length; i++) {
+                        // Append options to select.
+                        var option = document.createElement("option");
+                        option.text = html_data[i]["name"];
+                        datasetSelect.add(option);
+                    }
+
+                    // Store response object with number of words for all datasets.
+                    chartElements["menu_createrun"]["numWords"]["numberOfWordsInDataset"] = html_data;
+                    // Select first value.
+                    datasetSelect.value = html_data[0]["name"];
+
+                    // Update value in config object for word count slider.
+                    updateNumWordsValues(datasetSelect.value);
+                    // Set update handler on change.
+                    $("#nrps1").change(function() {
+                        updateNumWordsValues(datasetSelect.value);
+                    });
+                }
+            }
+        });
+     });
+}
+
+/**
+ * Updates value of controls associated with number of words.
+ * @returns True if dataset found and updated, otherwise false.
+ */
+function updateNumWordsValues(selectedDatasetName)
+{
+    numberOfWordsInDataset = chartElements["menu_createrun"]["numWords"]["numberOfWordsInDataset"];
+    // Find dataset name in loop.
+    for (let i = 0; i < numberOfWordsInDataset.length; i++) {
+        if (numberOfWordsInDataset[i]["name"] == selectedDatasetName) {
+            chartElements["menu_createrun"]["numWords"].maxValue = numberOfWordsInDataset[i]["wv_count"];
+            $("#" + chartElements["menu_createrun"]["numWords"]["stepper"])[0].max = numberOfWordsInDataset[i]["wv_count"];
+            let slider = $("#" + chartElements["menu_createrun"].numWords["slider"]).data("ionRangeSlider");
+            slider.update({
+                max: numberOfWordsInDataset[i]["wv_count"]
+            });
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -399,7 +483,15 @@ function binData(data, config, numberOfBins)
     console.log(binnedData);
 
     if (config["type"] == "numerical") {
+        console.log("data: *************************+");
+        console.log(data);
+        var arr = ["0.362743", "0.357969", "0.356322", "0.355757", "0.358511", "0.357218", "0.356696", "0.354579", "0.828295", "0.391186", "0.378577", "0.39372", "0.396416", "0.395641", "0.37573", "0.379666", "0.377443", "0.391842", "0.402021", "0.377516", "0.38936", "0.38936", "0.400883", "0.393171", "0.374419", "0.400821", "0.380502", "0.396098", "0.388256", "0.398968", "0.392525", "0.401858", "0.387297", "0.376471", "0.378183", "0.379787", "0.382024", "0.387928", "0.395367", "0.391972", "0.381295", "0.391183", "0.383598", "0.386424", "0.384338", "0.401834", "0.406253", "0.392854", "0.399266", "0.400804", "0.391146", "0.395441", "0.396265", "0.397894", "0.384822", "0.385181", "0.395443", "0.400981", "0.401716", "0.406633", "0.406887", "0.40694", "0.391219", "0.387946", "0.398858", "0.402233", "0.388583", "0.389772", "0.397084", "0.711566", "0.954557", "0.524007", "0.672288", "0.668441", "0.421726", "0.549536", "0.932952", "0.397851", "0.395536", "0.354818", "0.374355", "0.375257", "0.362613", "0.391271", "0.379219", "0.363316", "0.866006", "0.862254", "0.864403", "0.861346", "0.845225", "0.784467", "0.801275", "0.638579", "0.847282", "0.847402", "0.847747", "0.790411", "0.835979", "0.838546"];
+        var bins = d3.layout.histogram()  // create layout object
+            .bins(20)       // to use 20 bins
+            .range([0, 1])  // to cover range from 0 to 1
+            (arr);          // group the data into the bins
     }
+
 
     else if (config["type"] == "categorical") {
         for (let i = 0; i < data.length; i++)
@@ -549,6 +641,9 @@ $(document).ready(function(){
                 success: function(dataset_metadata) {
                     // Initializing carousel functionality.
                     initSlickCarousel();
+
+                    // Fill dataset select.
+                    initDatasetSelect();
 
                     // Initializing sliders.
                     initSliders();

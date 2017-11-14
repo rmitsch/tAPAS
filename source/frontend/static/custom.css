@@ -347,7 +347,7 @@ span.parameterLabel.noFontStyle {
 
 #nprNumberOfWordsContainer {
     vertical-align: top;
-    width: 200px;
+    width: 240px;
 }
 
 #nprDatasetContainer {
@@ -360,7 +360,7 @@ span.parameterLabel.noFontStyle {
 
 #stepper_numberOfWords {
     display: inline-block;
-    width: 40px;
+    width: 70px;
     margin-left: 10px;
     position: relative;
     top: -17px;

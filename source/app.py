@@ -14,6 +14,7 @@ import psycopg2
 import werkzeug
 from flask import jsonify
 
+
 def init_flask_app():
     """
     Initialize Flask app.
@@ -100,6 +101,11 @@ def fetch_carousel():
 @app.route('/dataset_metadata', methods=["GET", "POST"])
 def fetch_dataset_metadata():
     return jsonify(app.config["DB_CONNECTOR"].read_first_run_metadata())
+
+
+@app.route('/dataset_word_counts', methods=["GET", "POST"])
+def fetch_dataset_word_counts():
+    return jsonify(app.config["DB_CONNECTOR"].read_dataset_word_counts())
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=7182, debug=True)

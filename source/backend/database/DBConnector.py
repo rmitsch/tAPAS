@@ -124,6 +124,29 @@ class DBConnector:
         # 4. Commit changes.
         self.connection.commit()
 
+    def read_dataset_word_counts(self):
+        """
+        Reads names of all datasets in DB.
+        :return: List of dataset names.
+        """
+        cursor = self.connection.cursor()
+
+        cursor.execute("select "
+                       "   row_to_json(t) "
+                       " from ( "
+                       "   select "
+                       "     d.name, "
+                       "     count(wv.id) as wv_count "
+                       "   from "
+                       "     tapas.datasets d "
+                       "   inner join tapas.word_vectors wv on "
+                       "     wv.datasets_id = d.id "
+                       "   group by "
+                       "     d.name "
+                       " ) t;")
+
+        return [row[0] for row in cursor.fetchall()]
+
     def read_first_run_metadata(self):
         """
         Reads metadata for all first runs in database.
