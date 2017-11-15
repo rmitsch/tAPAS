@@ -138,20 +138,18 @@ chartElements = {
             minValue: -10,
             maxValue: -1,
             stepValue: 1,
-            values: [
-                "10<sup>-10</sup>", "10<sup>-9</sup>",
-                "10<sup>-8</sup>", "10<sup>-7</sup>",
-                "10<sup>-6</sup>", "10<sup>-5</sup>",
-                "10<sup>-4</sup>", "10<sup>-3</sup>",
-                "10<sup>-2</sup>", "10<sup>-1</sup>",
-            ],
+            values: null,
             type: "numerical",
             histogram: "nrph7",
             stepper: "stepper_minGradNorm",
             dropdown: null,
             toggleButton: "fixValueCheck6",
             slider: "slider6",
-            fixedByDefault: false
+            fixedByDefault: false,
+            prettify_enabled: true,
+            prettify: function (num) {
+                return ("10<sup>-" + num + "</sup>");
+            }
         },
 
         randomState: {
@@ -293,8 +291,29 @@ function createNewRun()
         }
     }
 
-    console.log(parameters);
+    // Add run name.
+    parameters["runName"] = $("#nprt1").val();
 
+    // Make sure name was entered.
+    if (parameters["runName"] != "") {
+        // Send config. to route.
+        $.ajax({
+          type: "POST",
+          url: "/create_new_run",
+          data: JSON.stringify(parameters),
+          success: function(html_data) {
+            if (html_data == "True")
+                alert("Successfully added run.");
+            else
+                alert("Error at data insert.");
+          },
+          contentType: "application/json"
+        });
+    }
+    // If not: Issue hint.
+    else {
+       alert("Please enter a name for this run configuration.");
+    }
 }
 
 function updateCarousel(menuItemID)
@@ -334,7 +353,7 @@ function initDatasetSelect()
         // Load datasets into corresponding selects.
         $.ajax({
             url: '/dataset_word_counts',
-            type: 'POST',
+            type: 'GET',
             success: function(html_data) {
                 if (html_data.length > 0 && datasetSelect.options.length == 0) {
                     for(let i = 0; i < html_data.length; i++) {
@@ -412,6 +431,7 @@ function initSliders()
                 step: currElement["stepValue"],
                 grid: true,
                 prettify_enabled: true,
+                prettify: currElement["prettify"],
                 hide_min_max: true,
                 hide_from_to: true,
                 grid_num: 3,

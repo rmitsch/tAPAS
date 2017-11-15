@@ -9,6 +9,7 @@ import logging
 import numpy
 import json
 
+
 class DBConnector:
     """
     Class for connecting to postgres database and executing queries.
@@ -201,3 +202,69 @@ class DBConnector:
         res = cursor.fetchall()
 
         return [row[0] for row in res]
+
+    def insert_new_run(self, run_config):
+        """
+        Inserts new run as specified by run configuration.
+        :return:
+        """
+        cursor = self.connection.cursor()
+
+        try:
+            # Check if dataset with this name already exists.
+            cursor.execute("select "
+                           "    id "
+                           "from "
+                           "    tapas.datasets "
+                           "where "
+                           "    name = %s",
+                           (run_config["dataset"],))
+            dataset_id = cursor.fetchone()[0]
+
+            cursor.execute("insert into tapas.runs ( "
+                           "    title, "
+                           "    description, "
+                           "    measure_weight_trustworthiness, "
+                           "    measure_weight_continuity, "
+                           "    measure_weight_generalization_accuracy, "
+                           "    measure_weight_we_information_ratio, "
+                           "    datasets_id, "
+                           "    init_n_components, "
+                           "    init_perplexity, "
+                           "    init_early_exaggeration, "
+                           "    init_learning_rate, "
+                           "    init_n_iter, "
+                           "    init_min_grad_norm, "
+                           "    init_metric, "
+                           "    init_init_method, "
+                           "    init_random_state, "
+                           "    init_angle"
+                           ") "
+                           "values (%s, %s, %s, %s, %s, %s, %s, %s, %s,"
+                           "        %s, %s, %s, %s, %s, %s, %s, %s) ",
+                           (
+                               run_config["runName"],
+                               "",
+                               run_config["measureWeight_trustworthiness"],
+                               run_config["measureWeight_continuity"],
+                               run_config["measureWeight_generalization"],
+                               run_config["measureWeight_relativeWEQ"],
+                               dataset_id,
+                               run_config["numDimensions"],
+                               run_config["perplexity"],
+                               run_config["earlyExaggeration"],
+                               run_config["learningRate"],
+                               run_config["numIterations"],
+                               pow(10, run_config["minGradNorm"]),
+                               run_config["metric"],
+                               run_config["initMethod"],
+                               run_config["randomState"],
+                               run_config["angle"]
+                           ))
+
+            self.connection.commit()
+
+        except psycopg2.Error as e:
+            return False
+
+        return True

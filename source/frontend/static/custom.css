@@ -340,6 +340,11 @@ span.parameterLabel.noFontStyle {
     display: inline-block;
 }
 
+#nprRunNameContainer {
+    vertical-align: top;
+    margin-right: 30px;
+}
+
 #nprDatasetContainer {
     vertical-align: top;
     margin-right: 30px;
@@ -386,4 +391,9 @@ span.parameterLabel.noFontStyle {
 
 #dataGenerationOptionsContainer {
     height: 150px;
+}
+
+#nprt1 {
+    position: relative;
+    top: 20px;
 }

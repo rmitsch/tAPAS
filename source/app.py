@@ -9,11 +9,11 @@ from flask import request, redirect, url_for, send_from_directory
 import backend.database.DBConnector as DBConnector
 import backend.utils.Utils as Utils
 from backend.algorithm.WordVector import WordVector
+from backend.algorithm.TSNEModel import TSNEModel
 import logging
 import psycopg2
 import werkzeug
 from flask import jsonify
-
 
 def init_flask_app():
     """
@@ -103,9 +103,15 @@ def fetch_dataset_metadata():
     return jsonify(app.config["DB_CONNECTOR"].read_first_run_metadata())
 
 
-@app.route('/dataset_word_counts', methods=["GET", "POST"])
+@app.route('/dataset_word_counts', methods=["GET"])
 def fetch_dataset_word_counts():
     return jsonify(app.config["DB_CONNECTOR"].read_dataset_word_counts())
+
+
+@app.route('/create_new_run', methods=["POST"])
+def create_new_run():
+    return str(app.config["DB_CONNECTOR"].insert_new_run(request.get_json()))
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=7182, debug=True)
