@@ -1,7 +1,7 @@
 //Todos:
 //    Continue with binData().
-//        - Write route to store data for new run in DB.
-//        - Show pop-up/message confirming new entry in DB.
+//        x Write route to store data for new run in DB.
+//        x Show pop-up/message confirming new entry in DB.
 //        - Bin numerical data with d3.histograms
 //        - Bin categorical data by looping through data, racking up counts in dictionary,
 //          then sorting it alphabetically.
@@ -31,7 +31,7 @@ chartElements = {
             minValue: null,
             maxValue: null,
             stepValue: null,
-            values: null,
+            values: [],
             type: "categorical",
             histogram: "nrph1",
             stepper: "stepper_numberOfWords",
@@ -142,7 +142,6 @@ chartElements = {
             type: "numerical",
             histogram: "nrph7",
             stepper: "stepper_minGradNorm",
-            dropdown: null,
             toggleButton: "fixValueCheck6",
             slider: "slider6",
             fixedByDefault: false,
@@ -187,7 +186,10 @@ chartElements = {
             minValue: null,
             maxValue: null,
             stepValue: null,
-            values: null,
+            values: ["braycurtis", "canberra", "chebyshev", "cityblock", "correlation", "cosine",
+                     "dice", "euclidean", "hamming",  "jaccard", "kulsinski", "mahalanobis",
+                     "matching", "minkowski", "rogerstanimoto", "russellrao", "seuclidean",
+                     "sokalmichener", "sokalsneath", "sqeuclidean", "yule"],
             type: "categorical",
             histogram: "nrph10",
             stepper: null,
@@ -202,7 +204,7 @@ chartElements = {
             minValue: null,
             maxValue: null,
             stepValue: null,
-            values: null,
+            values: ["random", "PCA"],
             type: "categorical",
             histogram: "nrph11",
             stepper: null,
@@ -289,10 +291,17 @@ function createNewRun()
         else if (currElement["dropdown"] != null) {
             parameters[key] = $("#" + currElement["dropdown"])[0].value;
         }
+
+        // Check if values are to be fixed.
+        if (currElement["toggleButton"] != null) {
+            parameters["is_" + key + "_fixed"] = $("#" + currElement["toggleButton"])[0]["checked"];
+        }
     }
 
     // Add run name.
     parameters["runName"] = $("#nprt1").val();
+
+    console.log(parameters);
 
     // Make sure name was entered.
     if (parameters["runName"] != "") {
@@ -302,7 +311,7 @@ function createNewRun()
           url: "/create_new_run",
           data: JSON.stringify(parameters),
           success: function(html_data) {
-            if (html_data == "True")
+            if (html_data == "Success")
                 alert("Successfully added run.");
             else
                 alert("Error at data insert.");
@@ -344,8 +353,9 @@ function updateCarousel(menuItemID)
 
 /**
  * Initializes component for dataset selection (@create new run).
+ * @param dataset_metadata
  */
-function initDatasetSelect()
+function initDatasetSelect(dataset_metadata)
 {
     $(document).ready(function(){
         var datasetSelect = $("#nrps1")[0];
@@ -356,11 +366,13 @@ function initDatasetSelect()
             type: 'GET',
             success: function(html_data) {
                 if (html_data.length > 0 && datasetSelect.options.length == 0) {
+                    chartElements["menu_createrun"]["dataset"]["values"] = [];
                     for(let i = 0; i < html_data.length; i++) {
-                        // Append options to select.
+                        // Append options to select and to config object.
                         var option = document.createElement("option");
                         option.text = html_data[i]["name"];
                         datasetSelect.add(option);
+                        chartElements["menu_createrun"]["dataset"]["values"].push(html_data[i]["name"]);
                     }
 
                     // Store response object with number of words for all datasets.
@@ -374,6 +386,9 @@ function initDatasetSelect()
                     $("#nrps1").change(function() {
                         updateNumWordsValues(datasetSelect.value);
                     });
+
+                    // Generate histograms.
+                    initInitialParameterHistograms(dataset_metadata);
                 }
             }
         });
@@ -386,7 +401,7 @@ function initDatasetSelect()
  */
 function updateNumWordsValues(selectedDatasetName)
 {
-    numberOfWordsInDataset = chartElements["menu_createrun"]["numWords"]["numberOfWordsInDataset"];
+    let numberOfWordsInDataset = chartElements["menu_createrun"]["numWords"]["numberOfWordsInDataset"];
     // Find dataset name in loop.
     for (let i = 0; i < numberOfWordsInDataset.length; i++) {
         if (numberOfWordsInDataset[i]["name"] == selectedDatasetName) {
@@ -461,7 +476,7 @@ function initSlickCarousel()
         slidesToShow: 1,
         slidesToScroll: 1,
         accessibility: true,
-        arrows: true,
+        arrows: false,
         centerMode: true,
         dots: true,
         fade: true,
@@ -494,28 +509,58 @@ function initSlickCarousel()
 /**
  * Bins data. Used for preparing histogram data for c3.js.
  * @param data Array of records indexed with IDs from chartElements.
+ * @param key Internally used parameter name.
  * @param config Configuration object.
  * @param numberOfBins
  */
-function binData(data, config, numberOfBins)
+function binData(data, key, config, numberOfBins)
 {
-    binnedData = [3, 4];
-    console.log(binnedData);
+    binnedData = [];
 
     if (config["type"] == "numerical") {
-        console.log("data: *************************+");
-        console.log(data);
-        var arr = ["0.362743", "0.357969", "0.356322", "0.355757", "0.358511", "0.357218", "0.356696", "0.354579", "0.828295", "0.391186", "0.378577", "0.39372", "0.396416", "0.395641", "0.37573", "0.379666", "0.377443", "0.391842", "0.402021", "0.377516", "0.38936", "0.38936", "0.400883", "0.393171", "0.374419", "0.400821", "0.380502", "0.396098", "0.388256", "0.398968", "0.392525", "0.401858", "0.387297", "0.376471", "0.378183", "0.379787", "0.382024", "0.387928", "0.395367", "0.391972", "0.381295", "0.391183", "0.383598", "0.386424", "0.384338", "0.401834", "0.406253", "0.392854", "0.399266", "0.400804", "0.391146", "0.395441", "0.396265", "0.397894", "0.384822", "0.385181", "0.395443", "0.400981", "0.401716", "0.406633", "0.406887", "0.40694", "0.391219", "0.387946", "0.398858", "0.402233", "0.388583", "0.389772", "0.397084", "0.711566", "0.954557", "0.524007", "0.672288", "0.668441", "0.421726", "0.549536", "0.932952", "0.397851", "0.395536", "0.354818", "0.374355", "0.375257", "0.362613", "0.391271", "0.379219", "0.363316", "0.866006", "0.862254", "0.864403", "0.861346", "0.845225", "0.784467", "0.801275", "0.638579", "0.847282", "0.847402", "0.847747", "0.790411", "0.835979", "0.838546"];
+        // Gather all values for attribute and put them into an array.
+        let attributeValues = [];
+
+        for (let i = 0; i < data.length; i++) {
+            // .toLowerCase() since for whatever reason column titles are returned that way.
+            // Special case minGradNorm: Displayed as total numbers, stored as components.
+            if (key != "minGradNorm")
+                attributeValues.push(data[i][key.toLowerCase()]);
+            else
+                attributeValues.push(Math.log10(data[i][key.toLowerCase()]));
+        }
+        // Let d3 create a histogram.
         var bins = d3.layout.histogram()  // create layout object
-            .bins(20)       // to use 20 bins
-            .range([0, 1])  // to cover range from 0 to 1
-            (arr);          // group the data into the bins
+            .bins(10)       // to use 20 bins
+            .range([config["minValue"], config["maxValue"]])
+            (attributeValues);          // group the data into the bins
+        // Count elements in bins.
+        for (let i = 0; i < bins.length; i++) {
+            binnedData.push(bins[i].length);
+        }
     }
 
+    // If categorical variables: Bin by hand.
+    else if (config["type"] == "categorical" && config["values"] != null) {
+        counts = {};
 
-    else if (config["type"] == "categorical") {
-        for (let i = 0; i < data.length; i++)
-            console.log(data[i]);
+        for (let i = 0; i < data.length; i++) {
+            // .toLowerCase() since for whatever reason column titles are returned that way.
+            let value = data[i][key.toLowerCase()];
+
+            if (value in counts)
+                counts[value]++;
+            else
+                counts[value] = 1;
+        }
+
+        // Add values for all possible options to array of binned values.
+        for (let i = 0; i < config["values"].length; i++) {
+            binnedData.push(config["values"][i] in counts ? counts[config["values"][i]] : 0);
+        }
+    }
+    else if (config["type"] == "categorical" && config["values"] != null) {
+        console.log("############### " + key)
     }
 
     return binnedData;
@@ -533,8 +578,8 @@ function initInitialParameterHistograms(dataset_metadata)
             let currElement = chartElements["menu_createrun"][key];
 
             // Bin data.
-            binnedData = binData(dataset_metadata, currElement, 10);
-            binnedData.unshift(key);
+            binnedData = binData(dataset_metadata, key, currElement, 10);
+            binnedData.unshift("data");
 
             // If element has histogram:
             if (currElement["histogram"] != null) {
@@ -545,7 +590,7 @@ function initInitialParameterHistograms(dataset_metadata)
                             binnedData
                         ],
                         colors: {
-                            sample: '#3d4a57'
+                            data: '#3d4a57'
                         },
                         type: 'bar'
                     },
@@ -573,12 +618,49 @@ function initInitialParameterHistograms(dataset_metadata)
                 });
             }
 
+            // If this is element with categorical element and hence has dropdown:
+            // Color first bar, since it's the selected one.
+            // Might be generalized later.
+            if (currElement["type"] == "categorical") {
+                let selectorString = "#" + currElement["histogram"] +  " .c3-shape-0";
+
+                // If data is available.
+                if ($(selectorString).length != 0)
+                    d3.select(selectorString).style("fill", "#ed5565");
+
+            }
+
             // Initialize "Fix value" toggle buttons.
             if (currElement["toggleButton"] != null) {
                 $("#" + currElement["toggleButton"]).lc_switch();
                 // Change toggle according to definition.
                 if (currElement["fixedByDefault"])
                     $("#" + currElement["toggleButton"]).lcs_on();
+            }
+        }
+    });
+}
+
+/**
+ * Initialized dropdown components.
+ */
+function initDropdowns()
+{
+    $(document).ready(function(){
+        // Loop through all defined chart elements.
+        for (var key in chartElements["menu_createrun"]) {
+            let currElement = chartElements["menu_createrun"][key];
+
+            if (currElement["dropdown"] != null) {
+                let dropdown = $("#" + currElement["dropdown"]);
+
+                dropdown.on('change', function() {
+                    for(let i = 0; i < currElement.values.length; i++) {
+                        // Highlight bar with selected index.
+                        let currentBar = d3.select("#" + currElement["histogram"] +  " .c3-shape-" + i);
+                        currentBar.style("fill", i == this.selectedIndex ? "#ed5565" : "#3d4a57"); // ed5565
+                    }
+                });
             }
         }
     });
@@ -663,13 +745,14 @@ $(document).ready(function(){
                     initSlickCarousel();
 
                     // Fill dataset select.
-                    initDatasetSelect();
+                    // Calls method to init initial parameter histograms.
+                    initDatasetSelect(dataset_metadata);
+
+                    // Initialize dropdown.
+                    initDropdowns();
 
                     // Initializing sliders.
                     initSliders();
-
-                    // Initializing initial parameter histograms.
-                    initInitialParameterHistograms(dataset_metadata);
 
                     // Initialize steppers.
                     initSteppers();

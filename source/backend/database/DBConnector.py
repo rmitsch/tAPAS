@@ -161,6 +161,7 @@ class DBConnector:
                        "from ("
                        "  select "
                        "   d.name as dataset, "
+                       "   r.title, "
                        "   r.measure_weight_trustworthiness as measureWeight_trustworthiness, "
                        "   r.measure_weight_continuity as measureWeight_continuity, "
                        "   r.measure_weight_generalization_accuracy as measureWeight_generalization, "
@@ -175,7 +176,8 @@ class DBConnector:
                        "   r.init_init_method as initMethod, "
                        "   r.init_random_state as randomState, "
                        "   r.init_angle as angle, "
-                       "   count(distinct wv.id) as numWords"
+                       "   r.num_words as numWords, "
+                       "   count(distinct wv.id) as dataset_numWords"
                        " from "
                        "   tapas.datasets d "
                        " inner join tapas.runs r on "
@@ -184,6 +186,7 @@ class DBConnector:
                        "   wv.datasets_id = d.id "
                        "  group by "
                        "   d.name, "
+                       "   r.title, "
                        "   r.measure_weight_trustworthiness, "
                        "   r.measure_weight_continuity, "
                        "   r.measure_weight_generalization_accuracy, "
@@ -197,7 +200,8 @@ class DBConnector:
                        "   r.init_metric, "
                        "   r.init_init_method, "
                        "   r.init_random_state, "
-                       "   r.init_angle "
+                       "   r.init_angle, "
+                       "   r.num_words "
                        ") t ")
         res = cursor.fetchall()
 
@@ -229,6 +233,7 @@ class DBConnector:
                            "    measure_weight_generalization_accuracy, "
                            "    measure_weight_we_information_ratio, "
                            "    datasets_id, "
+                           "    num_words, "
                            "    init_n_components, "
                            "    init_perplexity, "
                            "    init_early_exaggeration, "
@@ -238,10 +243,21 @@ class DBConnector:
                            "    init_metric, "
                            "    init_init_method, "
                            "    init_random_state, "
-                           "    init_angle"
+                           "    init_angle, "
+                           "    is_n_components_fixed, "
+                           "    is_perplexity_fixed, "
+                           "    is_early_exaggeration_fixed, "
+                           "    is_learning_rate_fixed, "
+                           "    is_n_iter_fixed, "
+                           "    is_min_grad_norm_fixed, "
+                           "    is_metric_fixed, "
+                           "    is_init_method_fixed, "
+                           "    is_random_state_fixed, "
+                           "    is_angle_fixed "
                            ") "
-                           "values (%s, %s, %s, %s, %s, %s, %s, %s, %s,"
-                           "        %s, %s, %s, %s, %s, %s, %s, %s) ",
+                           "values (%s, %s, %s, %s, %s, %s, %s, %s, %s, "
+                           "        %s, %s, %s, %s, %s, %s, %s, %s, %s, "
+                           "        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ",
                            (
                                run_config["runName"],
                                "",
@@ -250,6 +266,7 @@ class DBConnector:
                                run_config["measureWeight_generalization"],
                                run_config["measureWeight_relativeWEQ"],
                                dataset_id,
+                               run_config["numWords"],
                                run_config["numDimensions"],
                                run_config["perplexity"],
                                run_config["earlyExaggeration"],
@@ -259,12 +276,22 @@ class DBConnector:
                                run_config["metric"],
                                run_config["initMethod"],
                                run_config["randomState"],
-                               run_config["angle"]
+                               run_config["angle"],
+                               run_config["is_numDimensions_fixed"],
+                               run_config["is_perplexity_fixed"],
+                               run_config["is_earlyExaggeration_fixed"],
+                               run_config["is_learningRate_fixed"],
+                               run_config["is_numIterations_fixed"],
+                               run_config["is_minGradNorm_fixed"],
+                               run_config["is_metric_fixed"],
+                               run_config["is_initMethod_fixed"],
+                               run_config["is_randomState_fixed"],
+                               run_config["is_angle_fixed"]
                            ))
 
             self.connection.commit()
 
         except psycopg2.Error as e:
-            return False
+            return e
 
-        return True
+        return "Success"
