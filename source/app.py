@@ -113,5 +113,10 @@ def create_new_run():
     return str(app.config["DB_CONNECTOR"].insert_new_run(request.get_json()))
 
 
+@app.route('/runs', methods=["GET"])
+def read_runs_for_dataset():
+    return jsonify(app.config["DB_CONNECTOR"].read_runs_for_dataset(dataset_name=request.args["dataset_name"]))
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=7182, debug=True)

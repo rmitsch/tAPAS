@@ -57,7 +57,7 @@ class DBConnector:
                 cursor.execute(open("backend/database/ddl.sql", "r").read())
                 self.connection.commit()
 
-        except:
+        except psycopg2.Error:
             print(sys.exc_info()[1])
 
     def import_dataset(self, dataset_name, n_dim):
@@ -295,3 +295,28 @@ class DBConnector:
             return e
 
         return "Success"
+
+    def read_runs_for_dataset(self, dataset_name):
+        """
+        Reads all runs in database for specified dataset.
+        :param dataset_name:
+        :return: List of run metadata for this dataset.
+        """
+        cursor = self.connection.cursor()
+        print("dname = ", dataset_name)
+
+        cursor.execute("select "
+                       "   row_to_json(t) "
+                       " from ( "
+                       "    select "
+                       "        r.*, "
+                       "        d.name "
+                       "    from "
+                       "        tapas.runs r "
+                       "    inner join tapas.datasets d on "
+                       "        d.id = r.datasets_id and "
+                       "        d.name = %s"
+                       ") t;",
+                       (dataset_name,))
+
+        return [row[0] for row in cursor.fetchall()]

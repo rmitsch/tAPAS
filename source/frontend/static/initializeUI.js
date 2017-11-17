@@ -301,8 +301,6 @@ function createNewRun()
     // Add run name.
     parameters["runName"] = $("#nprt1").val();
 
-    console.log(parameters);
-
     // Make sure name was entered.
     if (parameters["runName"] != "") {
         // Send config. to route.
@@ -340,13 +338,19 @@ function updateCarousel(menuItemID)
     // If "Run optimization" is selected: Show dialog.
     if(menuItemID == "menu_run") {
         $(document).ready(function(){
+            // Show dialog.
             $( "#runopt_dialog" ).dialog("open");
+            // Hide carousel.
+            $("#carousel").css("display", "none");
         });
     }
 
     else {
         $(document).ready(function(){
+            // Hide dialog.
             $( "#runopt_dialog" ).dialog("close");
+            // Show carousel.
+            $("#carousel").css("display", "block");
         });
     }
 }
@@ -369,10 +373,15 @@ function initDatasetSelect(dataset_metadata)
                     chartElements["menu_createrun"]["dataset"]["values"] = [];
                     for(let i = 0; i < html_data.length; i++) {
                         // Append options to select and to config object.
-                        var option = document.createElement("option");
-                        option.text = html_data[i]["name"];
-                        datasetSelect.add(option);
+                        var option_newRun = document.createElement("option");
+                        option_newRun.text = html_data[i]["name"];
+                        datasetSelect.add(option_newRun);
                         chartElements["menu_createrun"]["dataset"]["values"].push(html_data[i]["name"]);
+
+                        // Add option value to popup for dataset selection before optimization run.
+                        var option_runOpt = document.createElement("option");
+                        option_runOpt.text = html_data[i]["name"];
+                        $("#runopt_datasetSelect")[0].add(option_runOpt);
                     }
 
                     // Store response object with number of words for all datasets.
@@ -382,13 +391,47 @@ function initDatasetSelect(dataset_metadata)
 
                     // Update value in config object for word count slider.
                     updateNumWordsValues(datasetSelect.value);
-                    // Set update handler on change.
+                    // Set update handler on change for dataset selection in view for run creation.
                     $("#nrps1").change(function() {
                         updateNumWordsValues(datasetSelect.value);
                     });
 
                     // Generate histograms.
                     initInitialParameterHistograms(dataset_metadata);
+
+                    // Initialize selects for popup @ run optimization.
+                    var runDataAjaxConfig = {
+                        url: '/runs',
+                        type: 'GET',
+                        data: {
+                            dataset_name: null
+                        },
+                        success: function(html_data) {
+                            // Clear dropdown.
+                            for(let i = $("#runopt_runSelect")[0].options.length - 1 ; i >= 0 ; i--) {
+                                $("#runopt_runSelect")[0].remove(i);
+                            }
+
+                            // Fill dropdown.
+                            for(let i = 0; i < html_data.length; i++) {
+                                var option = document.createElement("option");
+                                option.text = html_data[i]["title"];
+                                $("#runopt_runSelect")[0].add(option);
+                            }
+                        }
+                    };
+
+                    // Set update handler on change for dataset selection in view for run optimization.
+                    $("#runopt_datasetSelect").change(function() {
+                        runDataAjaxConfig.data.dataset_name = $("#runopt_datasetSelect").val();
+                        // Fetch runs available for this dataset.
+                        $.ajax(runDataAjaxConfig);
+                    });
+
+                    // Fetch value for dataset selected by default.
+                    runDataAjaxConfig.data.dataset_name = $("#runopt_datasetSelect").val();
+                    // Fetch runs available for this dataset.
+                    $.ajax(runDataAjaxConfig);
                 }
             }
         });
@@ -497,6 +540,7 @@ function initSlickCarousel()
             autoOpen: false,
             modal: true
         });
+
     });
 
     // Find out which element should be selected after page load.
