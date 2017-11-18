@@ -10,8 +10,9 @@
 
 #hyperparamPane {
     height: 80%;
-    width: 30%;
+    width: 29%;
     display: inline-block;
+    padding-left: 10px;
 }
 
 #map {
@@ -49,8 +50,7 @@
 
 div.runopt_histogramContainer {
     display:inline-block;
-    width: 45%;
-    margin-left: 10px;
+    width: 47%;
     margin-top: 10px;
 }
 
@@ -65,11 +65,25 @@ div.runopt_histogram {
     margin-top: 10px;
 }
 
-div.runopt_paramLabel {
+span.runopt_histogramParamLabel {
     margin-top: 0px;
+    font-size: 12px;
 }
 
-div.runopt_histogramValueLabelContainer {
+span.runopt_histogramValueLabel {
+    margin-top: 0px;
+    font-size: 12px;
+    position: absolute;
+    right: 16px;
+    top: 4px;
+}
+
+div.runopt_histogramContainer_header {
+    width: 100%;
+    position: relative;
+}
+
+div.runopt_histogramExtremaLabelContainer {
     width: 100%;
     position: relative;
     top: -10px;
@@ -82,7 +96,8 @@ span.runopt_histogramMinValueLabel {
 }
 
 span.runopt_histogramMaxValueLabel {
-    position: relative;
-    left: 45%;
+    position: absolute;
+    right: 16px;
     font-size: 11px;
+    top: 5px;
 }

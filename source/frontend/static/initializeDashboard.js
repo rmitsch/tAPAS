@@ -207,10 +207,14 @@ function initHyperparameterPanel()
 
             if (currElement.histogram != null) {
                 // Append new div.
-                $("#hyperparamPane").append("<div class='runopt_histogramContainer'> " +
-                    "   <div class='runopt_paramLabel'>" + currElement.displayName + "</div>" +
+                $("#hyperparamPane").append(
+                    "<div class='runopt_histogramContainer'> " +
+                    "   <div class='runopt_histogramContainer_header'>" +
+                    "       <span class='runopt_histogramParamLabel'>" + currElement.displayName + "</span>" +
+                    "       <span class='runopt_histogramValueLabel'>" + "234"+ "</span>" +
+                    "   </div>" +
                     "   <div class='runopt_histogram' id='" + currElement.histogram + "'></div>" +
-                    "   <div class='runopt_histogramValueLabelContainer'> " +
+                    "   <div class='runopt_histogramExtremaLabelContainer'> " +
                     "       <span class='runopt_histogramMinValueLabel'>MIN</span>" +
                     "       <span class='runopt_histogramMaxValueLabel'>MAX</span>" +
                     "   </div> " +
@@ -244,7 +248,7 @@ function initHyperparameterPanel()
                             y: {show: false}
                     },
                     size: {
-                        width: ($('#hyperparamPane').width() * 0.3)
+                        width: ($('#hyperparamPane').width() * 0.4)
                     },
                     point: {
                         show: true
