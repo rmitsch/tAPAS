@@ -338,17 +338,19 @@ function updateCarousel(menuItemID)
     // If "Run optimization" is selected: Show dialog.
     if(menuItemID == "menu_run") {
         $(document).ready(function(){
-            // Show dialog.
-            $( "#runopt_dialog" ).dialog("open");
+            // Show dialog and dashboard.
+            $("#dashboard").css("display", "block");
+//            $( "#runopt_dialog" ).dialog("open");
             // Hide carousel.
             $("#carousel").css("display", "none");
         });
     }
-
+    // Otherwise: Hide dialog again.
     else {
         $(document).ready(function(){
-            // Hide dialog.
-            $( "#runopt_dialog" ).dialog("close");
+            // Hide dialog and dasboard.
+//            $( "#runopt_dialog" ).dialog("close");
+            $("#dashboard").css("display", "none");
             // Show carousel.
             $("#carousel").css("display", "block");
         });
@@ -540,7 +542,6 @@ function initSlickCarousel()
             autoOpen: false,
             modal: true
         });
-
     });
 
     // Find out which element should be selected after page load.
@@ -771,7 +772,7 @@ function initChunkedFileUpload()
     // Use r.on('progress') to update progress indicator.
 }
 
-
+// Initialize setup UI.
 $(document).ready(function(){
     // Fetch carousel content.
     $.ajax({
@@ -803,6 +804,9 @@ $(document).ready(function(){
 
                     // Initialize chunked file upload.
                     initChunkedFileUpload();
+
+                    // Initialize dashboard.
+                    initDashboard();
                 }
             });
         }

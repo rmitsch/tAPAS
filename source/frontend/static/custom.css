@@ -397,3 +397,7 @@ span.parameterLabel.noFontStyle {
     position: relative;
     top: 20px;
 }
+
+body, html {
+    height: 100%;
+}

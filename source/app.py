@@ -98,6 +98,11 @@ def fetch_carousel():
     return app.send_static_file('index_carousel.html')
 
 
+@app.route('/dashboard_content', methods=["GET"])
+def fetch_dashboard():
+    return app.send_static_file('dashboard.html')
+
+
 @app.route('/dataset_metadata', methods=["GET", "POST"])
 def fetch_dataset_metadata():
     return jsonify(app.config["DB_CONNECTOR"].read_first_run_metadata())

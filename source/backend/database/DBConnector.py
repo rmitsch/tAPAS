@@ -303,7 +303,6 @@ class DBConnector:
         :return: List of run metadata for this dataset.
         """
         cursor = self.connection.cursor()
-        print("dname = ", dataset_name)
 
         cursor.execute("select "
                        "   row_to_json(t) "

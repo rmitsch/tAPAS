@@ -6,7 +6,6 @@
 
     <title>tAPAS</title>
 
-
     <link rel="stylesheet" href="./static/lib/pure-1.0.0/pure-min.css">
     <link rel="stylesheet" href="./static/lib/dc.css">
     <link rel="stylesheet" type="text/css" href="./static/lib/slick-1.8/slick/slick.css"/>
@@ -19,6 +18,7 @@
     <link rel="stylesheet" href="./static/lib/lcSwitch/lc_switch.css" rel="stylesheet">
 
     <link rel="stylesheet" href="./static/custom.css">
+    <link rel="stylesheet" href="./static/dashboard.css">
     <link rel="stylesheet" href="./static/dropdown.css">
 
     <link rel="icon" type="image/png" href="./static/img/icon.png">
@@ -49,10 +49,11 @@
             </div>
         </div>
 
-        <!-- Carousel content is loaded by jquery. -->
-        <div class="carousel" id="carousel">
-        </div>
+        <!-- Carousel content loaded by jquery. -->
+        <div class="carousel" id="carousel"></div>
 
+        <!-- Dashboard content loaded by jquery. -->
+        <div class="dashboard" id="dashboard"></div>
     </div>
 
     <!-- Include JS files. -->
@@ -78,5 +79,7 @@
 
     <!-- Initialize UI. -->
     <script type="text/javascript" src="./static/initializeUI.js"></script>
+    <!-- Initialize dashboard. -->
+    <script type="text/javascript" src="./static/initializeDashboard.js"></script>
 </body>
 </html>
