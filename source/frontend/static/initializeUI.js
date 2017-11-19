@@ -1,18 +1,3 @@
-//Todos:
-//    Continue with binData().
-//        x Write route to store data for new run in DB.
-//        x Show pop-up/message confirming new entry in DB.
-//        - Bin numerical data with d3.histograms
-//        - Bin categorical data by looping through data, racking up counts in dictionary,
-//          then sorting it alphabetically.
-//        - Display data in barcharts.
-//        - Highlight currently selected bar (optional).
-//        - Proceed with dasboard (layout).
-//        - Dashboard implementation.
-//        - Start with PAELLA mock-up, iteration 2.
-//        - PAELLA: Update backend.
-//    Estimated start of dashboard layouting: 15th - 18th of November.
-
 // ************************************************************
 // ************************************************************
 
@@ -648,7 +633,7 @@ function initInitialParameterHistograms(dataset_metadata)
                         show: false
                     },
                     tooltip: {
-                        show: false
+                        show: true
                     },
                     axis: {
                             x: {show: false},

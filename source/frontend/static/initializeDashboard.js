@@ -224,8 +224,13 @@ function initHyperparameterPanel()
                 var chart = c3.generate({
                     bindto: "#" + currElement.histogram,
                     data: {
+                        x: 'x',
                         columns: [
-                            ["data", 1, 2, 3, 4, 5, 6, 7]
+                            ["x", "cat1", "cat2", "cat3", "cat4", "cat5"],
+                            ["data", 1, 2, 3, 4, 5],
+                        ],
+                        groups: [
+                              ['data']
                         ],
                         colors: {
                             data: '#3d4a57'
@@ -241,10 +246,13 @@ function initHyperparameterPanel()
                         show: false
                     },
                     tooltip: {
-                        show: false
+                        show: true
                     },
                     axis: {
-                            x: {show: false},
+                            x: {
+                                show: false,
+                                type: 'category'
+                            },
                             y: {show: false}
                     },
                     size: {
@@ -255,6 +263,96 @@ function initHyperparameterPanel()
                     }
                 });
             }
+        }
+    });
+}
+
+/**
+ * Initializes query field.
+ */
+function initQueryField()
+{
+
+}
+
+/**
+ * Initializes quality pane.
+ */
+function initQualityPane()
+{
+    $(document).ready(function() {
+        // Generate quality metrics line chart.
+        var chart = c3.generate({
+            bindto: "#qualityMetricsLinechart",
+            data: {
+                columns: [
+                    ["Trustworthiness", 0.1, 0.2, 0.3, 0.4, 0.5],
+                    ["Continuity", 0.5, 0.4, 0.3, 0.2, 0.1],
+                    ["Generalization accuracy", 0.4, 0.5, 0.2, 0.3, 0.1],
+                    ["WE information ratio", 0.5, 0.2, 0.1, 0.3, 0.4]
+                ],
+                colors: {
+                    Trustworthiness: "#ccc"
+                },
+                type: 'line'
+            },
+            legend: {
+                show: true,
+                position: 'right'
+            },
+            tooltip: {
+                show: true
+            },
+            axis: {
+                x: {
+                    show: true,
+                    tick: {
+                        count: 4
+                    }
+                },
+                y: {
+                    show: true,
+                    max: 1,
+                    min: 0,
+                    type: 'number',
+                    tick: {
+                        values: [0, 1]
+                    }
+                }
+            },
+            size: {
+                width: ($('#qualityPane').width()) * 1,
+                height: ($('#qualityPane').height()) * 0.92
+            },
+            point: {
+                show: false
+            }
+        });
+    });
+}
+
+/**
+ * Initializes quality evaluation box.
+ */
+function initQualityEvaluationBox()
+{
+    let calculatedQuality = 0.5;
+
+    // Initialize slider.
+    $("#runopt_qualitySlider").ionRangeSlider({
+        hide_min_max: true,
+        keyboard: true,
+        min: 0,
+        max: 1,
+        from: calculatedQuality,
+        type: 'single',
+        step: 0.1,
+        grid: true,
+        grid_num: 3,
+        // Define hooks to steppers.
+        onChange: function (data) {
+            // Fetch corresponding stepper element.
+
         }
     });
 }
@@ -272,6 +370,15 @@ function initDashboard()
 
             // Initialize hyperparameter panel.
             initHyperparameterPanel();
+
+            // Initlialize query field.
+            initQueryField();
+
+            // Initlialize quality evaluation box.
+            initQualityEvaluationBox();
+
+            // Initlialize quality pane.
+            initQualityPane();
         }
     });
 }

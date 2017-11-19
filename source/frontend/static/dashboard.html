@@ -1,7 +1,22 @@
 <div id="hyperparamPane"></div>
 <div id="map"></div>
-<div id="qualityPane"></div>
-<div id="queryField"></div>
+<div id="qualityPane">
+    <div id="qualityMetricsLinechart"></div>
+</div>
+<div id="queryField">
+    <input placeholder="Issue a query" type="search" />
+</div>
 <div id="qualityEvaluationBox">
-    <!-- Add. info: dataset name, run name, measure weights -->
+    <div id="qualityEvaluationBox_header">
+        <span id="qualityEvaluationBox_runIteration"></span> |
+        <span id="qualityEvaluationBox_datasetName"></span>
+        run#23 | word.vec.en
+    </div>
+    <div id="runopt_qualitySliderLabel">Model quality:</div>
+    <div id="runopt_qualitySliderContainer">
+        <input type="text" id="runopt_qualitySlider" value="" name="runopt_qualitySlider" />
+    </div>
+    <div id="runopt_numModelIterations_label">Number of intermediate models:</div>
+    <input class="inlineBlock" id="runopt_qualityEvaluationBox_stepper" type="number" value="1" step="1" min="0" />
+    <a class="pure-button" id="runopt_confirmModelQuality" href="javascript:alert('blub')">Confirm and proceed</a>
 </div>

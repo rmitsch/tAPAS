@@ -177,6 +177,7 @@ span.ui-slider-handle.ui-corner-all.ui-state-default {
     width: 96%;
 }
 
+div#nprNumberOfWordsContainer span.irs.js-irs-1.irs-with-grid,
 div#initialParameterGrid span.irs-with-grid, div#measureWeightGrid span.irs-with-grid {
     top: -36px;
 }
