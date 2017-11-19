@@ -735,26 +735,38 @@ function initChunkedFileUpload()
     var r = new Resumable({
       target: '/upload',
       // Limit to chunks to 50 MB.
-      chunkSize: 50 * 1024 * 1024,
+      chunkSize: 1 * 1024 * 1024,
       simultaneousUploads: 1
     });
 
     r.assignBrowse(document.getElementById('vectorFileUpload'));
 
     r.on('fileAdded', function(file) {
-        console.log("file added");
+        // Init progress bar.
+        $("#upload_status").progressbar({
+            value: 0
+        });
+        $("#upload_status").css({'display': 'block'});
+        $("#upload_status .ui-progressbar-value").css({'background': '#3d4a57'});
+        $("#upload_status_progressLabel").html("Importing data.");
+        // Start upload.
         r.upload();
     });
 
     r.on('fileSuccess', function(file,message) {
-        console.log("file success");
+        // WE information
+        // clustering
+        $("#upload_status_progressLabel").html("Checking WE accuracy.");
     });
 
     r.on('fileError', function(file, message) {
         console.log(message);
     });
 
-    // Use r.on('progress') to update progress indicator.
+    r.on('fileProgress', function(file) {
+        // Handle progress for both the file and the overall upload
+        $("#upload_status").progressbar('value', r.progress() * 100 / 3.0);
+    });
 }
 
 // Initialize setup UI.

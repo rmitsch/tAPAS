@@ -22,7 +22,6 @@
     float: right;
     height: 79%;
     width: calc(70% - 1px);
-    background-color: #444444;
 }
 
 #qualityPane {
@@ -39,8 +38,15 @@
     top: 34px;
     right: 0px;
     width: 300px;
-    height: 200px;
+    height: 190px;
     background-color: white;
+    border-left-color: #3d4a57;
+    border-left-style: solid;
+    border-bottom-color: #3d4a57;
+    border-bottom-style: solid;
+    font-size: 12px;
+    opacity: 0.8;
+    overflow: hidden;
 }
 
 #queryField {
@@ -148,7 +154,7 @@ span.runopt_histogramMaxValueLabel {
 }
 
 #runopt_confirmModelQuality {
-    margin-left: 60px;
+    margin-left: 80px;
 }
 
 #qualityPane {
@@ -158,4 +164,10 @@ span.runopt_histogramMaxValueLabel {
 
 #qualityMetricsLinechart {
     margin-top: 5px;
+}
+
+#runopt_wvScatterplot {
+    display: block;
+    height: 100%;
+    width: 100%;
 }
