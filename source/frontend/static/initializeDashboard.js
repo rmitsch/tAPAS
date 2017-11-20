@@ -338,7 +338,7 @@ function initQualityEvaluationBox()
 {
     let calculatedQuality = 0.5;
 
-    // Initialize slider.
+    // Initialize quality evaluation slider.
     $("#runopt_qualitySlider").ionRangeSlider({
         hide_min_max: true,
         keyboard: true,
@@ -354,6 +354,22 @@ function initQualityEvaluationBox()
             // Fetch corresponding stepper element.
 
         }
+    });
+
+    // Initialize hover listener.
+    $("#qualityEvaluationBox").mouseenter(function() {
+        $("#qualityEvaluationBox").animate({
+            width: "300px",
+            height: "190px",
+        }, 100, function() {});
+    });
+    // Initialize leave listener.
+    $("#qualityEvaluationBox").mouseleave(function() {
+        $("#qualityEvaluationBox").animate({
+            width: "150px",
+            height: "25px",
+        }, 100, function() {});
+
     });
 }
 

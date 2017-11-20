@@ -75,7 +75,7 @@ class WordVector:
                     # Add line to collection of items to insert in DB. Remove trailing \n.
                     line_parts = str(merged_line).replace(' \\n', '').split(' ')
 
-                    # Line has to contain num_dimennsions elements (word + coordinates). Otherwise invalid.
+                    # Line has to contain num_dimensions elements (word + coordinates). Otherwise invalid.
                     if len(line_parts) == WordVector.num_dimensions + 1:
                         tuples_to_insert.append((
                             # Append word.
@@ -92,9 +92,18 @@ class WordVector:
                     else:
                         print("corrupt: ")
                         print(merged_line)
-                        print(line)
-                        print("---------------")
 
             count += 1
 
         return tuples_to_insert
+
+    @staticmethod
+    def determine_wordembedding_accuracy(db_connector, model_name):
+        """
+        Determines WE accuracy with a simple test procedure consisting of analogies and (dis-similarities).
+        :param db_connector:
+        :param model_name:
+        :return:
+        """
+
+        return None

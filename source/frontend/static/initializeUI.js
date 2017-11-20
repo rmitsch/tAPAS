@@ -27,7 +27,7 @@ chartElements = {
         },
 
         numWords: {
-            defaultValue: 10000,
+            defaultValue: 1000,
             minValue: 1000,
             // maxValue is irrelevant since value will be set at dataset load.
             maxValue: 1000,
@@ -735,7 +735,7 @@ function initChunkedFileUpload()
     var r = new Resumable({
       target: '/upload',
       // Limit to chunks to 50 MB.
-      chunkSize: 1 * 1024 * 1024,
+      chunkSize: 10 * 1024 * 1024,
       simultaneousUploads: 1
     });
 
@@ -757,6 +757,15 @@ function initChunkedFileUpload()
         // WE information
         // clustering
         $("#upload_status_progressLabel").html("Checking WE accuracy.");
+        // Fetch carousel content.
+        $.ajax({
+            url: '/check_we_model',
+            type: 'POST',
+            data: JSON.stringify(r.file),
+            success: function(html_data) {
+                $("#upload_status_progressLabel").html("Clustering word embedding.");
+            }
+        });
     });
 
     r.on('fileError', function(file, message) {

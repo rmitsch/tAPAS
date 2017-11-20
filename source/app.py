@@ -2,7 +2,6 @@
 # @date 2017-10-27
 #
 
-import re
 from flask import Flask
 from flask import render_template
 from flask import request, redirect, url_for, send_from_directory
@@ -10,10 +9,9 @@ import backend.database.DBConnector as DBConnector
 import backend.utils.Utils as Utils
 from backend.algorithm.WordVector import WordVector
 from backend.algorithm.TSNEModel import TSNEModel
-import logging
-import psycopg2
 import werkzeug
 from flask import jsonify
+
 
 def init_flask_app():
     """
@@ -88,7 +86,7 @@ def upload(path):
         dataset_id=dataset_id)
 
     # Insert vectors in this chunk into DB.
-    app.config["DB_CONNECTOR"].import_word_vectors(tuples_to_insert)
+    # app.config["DB_CONNECTOR"].import_word_vectors(tuples_to_insert)
 
     return "200"
 
@@ -121,6 +119,15 @@ def create_new_run():
 @app.route('/runs', methods=["GET"])
 def read_runs_for_dataset():
     return jsonify(app.config["DB_CONNECTOR"].read_runs_for_dataset(dataset_name=request.args["dataset_name"]))
+
+
+@app.route('/check_we_model', methods=["POST"])
+def determine_wordembedding_accuracy():
+    """
+    Determines WE accuracy. Stores result in DB.
+    :return: 200 if successful. 500 if failing.
+    """
+    return "200"
 
 
 if __name__ == "__main__":
