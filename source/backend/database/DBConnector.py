@@ -341,7 +341,7 @@ class DBConnector:
                        "inner join tapas.datasets d on "
                        "    d.id = w.datasets_id and "
                        "    d.name = %s "
-                       "order by w.id asc ",
+                       "order by w.id asc",
                        (dataset_name,))
 
         # Create dataframe with data. Cast vector data to numpy arrays.
@@ -350,3 +350,20 @@ class DBConnector:
             columns=["id", "word", "cluster_id", "values"],
             index=["word"]
         )
+
+    def set_dataset_qvec_score(self, dataset_name, qvec_score):
+        """
+        Updates dataset's QVEC score in database.
+        :param dataset_name:
+        :param qvec_score:
+        :return:
+        """
+        cursor = self.connection.cursor()
+
+        cursor.execute("update tapas.datasets "
+                       "set "
+                       "    qvec_score = %s "
+                       "where "
+                       "    name = %s",
+                       (qvec_score, dataset_name, ))
+        self.connection.commit()

@@ -754,17 +754,28 @@ function initChunkedFileUpload()
     });
 
     r.on('fileSuccess', function(file,message) {
-        // WE information
-        // clustering
         $("#upload_status_progressLabel").html("Checking WE accuracy.");
-        // Fetch carousel content.
+        // Determine WE's QVEC score.
         $.ajax({
             url: '/check_we_model',
             type: 'POST',
-            data: JSON.stringify(r.file),
+            data: JSON.stringify(file.fileName),
             success: function(html_data) {
+                $("#upload_status").progressbar({value: 66});
                 $("#upload_status_progressLabel").html("Clustering word embedding.");
-            }
+                // Cluster word embedding.
+                $.ajax({
+                    url: '/cluster_we_model',
+                    type: 'POST',
+                    data: JSON.stringify(file.fileName),
+                    success: function(html_data) {
+                        $("#upload_status").progressbar({value: 100});
+                        $("#upload_status_progressLabel").html("Finished.");
+                    },
+                    contentType: "application/json"
+                });
+            },
+            contentType: "application/json"
         });
     });
 

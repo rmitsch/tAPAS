@@ -64,7 +64,6 @@ def ReadOracleMatrix(filenames, vocab_set):
     matrix = {}
     for filename in filenames:
         # file format: headache  {"WN_noun.cognition": 0.5, "WN_noun.state": 0.5}
-        print(filename)
         if args.verbose:
             print("Loading oracle matrix:", filename)
 

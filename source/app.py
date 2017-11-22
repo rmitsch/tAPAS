@@ -5,12 +5,12 @@
 from flask import Flask
 from flask import render_template
 from flask import request, redirect, url_for, send_from_directory
-import backend.database.DBConnector as DBConnector
 import backend.utils.Utils as Utils
 from backend.algorithm.WordVector import WordVector
-from backend.algorithm.TSNEModel import TSNEModel
+from backend.algorithm.QVEC import QVECConfiguration
 import werkzeug
 from flask import jsonify
+from backend.algorithm.WordEmbeddingClusterer import WordEmbeddingClusterer
 
 
 def init_flask_app():
@@ -35,7 +35,8 @@ app = init_flask_app()
 app.config["DB_CONNECTOR"] = Utils.connect_to_database(False)
 # Define version.
 app.config["VERSION"] = "0.1"
-
+# Define container for repeatedly used data objects.
+app.config["DATA"] = {}
 
 # root: Render HTML for start menu.
 @app.route("/")
@@ -127,6 +128,36 @@ def determine_wordembedding_accuracy():
     Determines WE accuracy. Stores result in DB.
     :return: 200 if successful. 500 if failing.
     """
+    dataset_name = request.get_json()
+
+    # Fetch word embedding from DB.
+    word_embedding = app.config["DB_CONNECTOR"].read_word_vectors_for_dataset(request.get_json())
+
+    qvec = QVECConfiguration()
+    app.config["DB_CONNECTOR"].set_dataset_qvec_score(
+        dataset_name=dataset_name,
+        qvec_score=qvec.run(word_embedding=word_embedding)
+    )
+    return "200"
+
+
+@app.route('/cluster_we_model', methods=["POST"])
+def cluster_wordembedding():
+    """
+    Clusters original WE using HDBSCAN.
+    :return: 200 if successful. 500 if failing.
+    """
+    dataset_name = request.get_json()
+
+    # Fetch word embedding from DB.
+    word_embedding = app.config["DB_CONNECTOR"].read_word_vectors_for_dataset(request.get_json())
+
+    clusterer = WordEmbeddingClusterer(word_embedding)
+    cluster_labels = clusterer.run()
+    print(cluster_labels)
+
+    # CONTINUE HERE: Update word vector's cluster ID in DB.
+
     return "200"
 
 
