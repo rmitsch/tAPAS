@@ -2,37 +2,40 @@ from .QVEC import GetVocab
 from .QVEC import ReadOracleMatrix
 from .QVEC import ComputeCCA
 import numpy
+import os
 
 
 class QVECConfiguration:
     """
-    Wrapper for QVEC algorithm for easier use.
+    Wrapper for QVEC algorithm for easier usage.
     """
 
-    def __init__(self, oracle_filenames):
-        self.oracle_files = oracle_filenames.strip().split(",")
+    def __init__(self):
+        curr_path = os.path.dirname(os.path.realpath(__file__))
+        self.oracle_files = [curr_path + "/oracles/semcor_noun_verb.supersenses.en",
+                             curr_path + "/oracles/ptb.pos_tags"]
         self.vocab_oracle = GetVocab(self.oracle_files, vocab_union=True)
         self.vocab_vectors = None
         self.vocab_set = None
         self.oracle_matrix = None
         self.vsm_matrix = None
 
-    def evaluate_word_embedding(self, word_embedding):
+    def run(self, word_embedding):
         """
         Calculates QVEC-CCA score for specified word embedding.
         Overwrites previous values for word embedding-specific variables (as opposed to the oracle-related data).
         :return:
         """
 
-        self.vocab_vectors = self.get_vocab_from_word_embedding(word_embedding)
+        self.vocab_vectors = self._get_vocab_from_word_embedding(word_embedding)
         self.vocab_set = set(self.vocab_vectors) & set(self.vocab_oracle)
 
         self.oracle_matrix = ReadOracleMatrix(self.oracle_files, self.vocab_set)
-        self.vsm_matrix = self.read_vector_matrix_from_word_embedding(word_embedding, self.vocab_set)
+        self.vsm_matrix = self._read_vector_matrix_from_word_embedding(word_embedding, self.vocab_set)
 
         return ComputeCCA(self.vsm_matrix, self.oracle_matrix)
 
-    def get_vocab_from_word_embedding(self, word_embedding):
+    def _get_vocab_from_word_embedding(self, word_embedding):
         """
         Extracts vocabulary from word embedding.
         :param word_embedding: Data frame with n + 1 columns, where n == 0 contains the word and all other columns
@@ -41,18 +44,25 @@ class QVECConfiguration:
         """
 
         # Assuming there aren't any charset problems.
-        return word_embedding.iloc[:, 0]
+        return word_embedding.index.values
 
-    def read_vector_matrix_from_word_embedding(self, word_embedding):
+    def _read_vector_matrix_from_word_embedding(self, word_embedding, vocab_set):
         """
         Reads vector values from word embedding.
         :param word_embedding: {word -> [val_dim1, val_dim2, ..., val_dimn]}. Words have to appear in vocabulary as defined
+        :param vocab_set:
         :return: List of word vectors, alphabetically sorted by words in vocabulary set.
         """
 
         # Filter out columns not in vocabulary set, sort by words ascendingly.
-        filtered_word_vectors = word_embedding[
-            word_embedding.columns[0].isin(self.vocab_set)
-        ].sort(word_embedding.columns[0], ascending=True).iloc[:, 1:].values()
+        filtered_sorted_word_embedding = word_embedding[
+            word_embedding.index.isin(vocab_set)
+        ].sort_index(ascending=True)
 
-        return filtered_word_vectors
+        # QVEC-CCA requests vector data to be a numpy array of lists, hence a cast (from ndarray of ndarrays) is
+        # necessary.
+        cast_word_vectors = numpy.asarray(
+            [word_vector_ndarray.tolist() for word_vector_ndarray in filtered_sorted_word_embedding['values']]
+        )
+
+        return numpy.asarray(cast_word_vectors)

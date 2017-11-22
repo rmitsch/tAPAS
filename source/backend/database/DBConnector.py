@@ -8,6 +8,7 @@ import sys
 import logging
 import numpy
 import json
+import pandas
 
 
 class DBConnector:
@@ -319,3 +320,33 @@ class DBConnector:
                        (dataset_name,))
 
         return [row[0] for row in cursor.fetchall()]
+
+    def read_word_vectors_for_dataset(self, dataset_name):
+        """
+        Fetches all word vectors for specified dataset.
+        :param dataset_name:
+        :return: Word vector metadata as dataframe, actual word vectors as numpy array of numpy arrays, dictionary for
+        looking up word vectors by words in word vector array.
+        """
+        cursor = self.connection.cursor()
+
+        # Get word vector data and store it in dataframe.
+        cursor.execute("select "
+                       "    w.id, "
+                       "    w.word,"
+                       "    coalesce(w.cluster_id, 0), "
+                       "    w.values "
+                       "from "
+                       "    tapas.word_vectors w "
+                       "inner join tapas.datasets d on "
+                       "    d.id = w.datasets_id and "
+                       "    d.name = %s "
+                       "order by w.id asc ",
+                       (dataset_name,))
+
+        # Create dataframe with data. Cast vector data to numpy arrays.
+        return pandas.DataFrame.from_records(
+            [[int(row[0]), row[1], int(row[2]), numpy.asarray(row[3])] for row in cursor.fetchall()],
+            columns=["id", "word", "cluster_id", "values"],
+            index=["word"]
+        )
