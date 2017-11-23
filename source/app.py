@@ -150,13 +150,13 @@ def cluster_wordembedding():
     dataset_name = request.get_json()
 
     # Fetch word embedding from DB.
-    word_embedding = app.config["DB_CONNECTOR"].read_word_vectors_for_dataset(request.get_json())
+    word_embedding = app.config["DB_CONNECTOR"].read_word_vectors_for_dataset(dataset_name)
 
     clusterer = WordEmbeddingClusterer(word_embedding)
-    cluster_labels = clusterer.run()
-    print(cluster_labels)
+    word_embedding["cluster_id"] = clusterer.run()
 
-    # CONTINUE HERE: Update word vector's cluster ID in DB.
+    # Update word vector's cluster ID in DB.
+    app.config["DB_CONNECTOR"].update_word_vectors_cluster_ids(word_embedding=word_embedding)
 
     return "200"
 

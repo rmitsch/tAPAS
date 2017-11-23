@@ -367,3 +367,24 @@ class DBConnector:
                        "    name = %s",
                        (qvec_score, dataset_name, ))
         self.connection.commit()
+
+    def update_word_vectors_cluster_ids(self, word_embedding):
+        """
+        Updates word vectors' cluster IDs in database.
+        :param word_embedding:
+        :return:
+        """
+        cursor = self.connection.cursor()
+
+        cursor.executemany('''
+            update tapas.word_vectors
+            set
+                cluster_id = %(cluster_id)s
+            where
+                id = %(id)s
+        ''', [
+            # Convert relevant columns in dataframe to dictionary.
+            {"id": int(x[0]), "cluster_id": int(x[1])} for x in word_embedding[['id', 'cluster_id']].values
+        ])
+
+        self.connection.commit()

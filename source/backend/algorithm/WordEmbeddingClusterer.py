@@ -20,7 +20,7 @@ class WordEmbeddingClusterer:
     def run(self):
         # Stack vectors so scikit-learn/HDBSCAN accepts the data; start clustering.
         data = numpy.stack(self.word_embedding['values'].values, axis=0)
-        clu = pydpc.Cluster(data)
-        clu.assign(10, 0.015)
+        clu = pydpc.Cluster(data, fraction=0.2)
+        clu.assign(16, 1.54)
 
-        return clu.clusters
+        return clu.membership
