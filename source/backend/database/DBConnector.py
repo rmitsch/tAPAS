@@ -295,8 +295,6 @@ class DBConnector:
         except psycopg2.Error as e:
             return e
 
-        return "Success"
-
     def read_runs_for_dataset(self, dataset_name):
         """
         Reads all runs in database for specified dataset.
@@ -386,5 +384,118 @@ class DBConnector:
             # Convert relevant columns in dataframe to dictionary.
             {"id": int(x[0]), "cluster_id": int(x[1])} for x in word_embedding[['id', 'cluster_id']].values
         ])
+
+        self.connection.commit()
+
+    def insert_tsne_model(self, tsne_configuration, sequence_number_in_run):
+        """
+        Inserts metadata of new t-SNE model into database.
+        :param tsne_configuration:
+        :param sequence_number_in_run: Model's sequence number in particular run.
+        :return:
+        """
+        cursor = self.connection.cursor()
+
+        try:
+            # Fetch run.
+            cursor.execute("select "
+                           "    r.id,"
+                           "    r.datasets_id "
+                           "from "
+                           "    tapas.runs r "
+                           "where "
+                           "    r.title = %s ",
+                           (tsne_configuration["runName"],))
+            run_id = cursor.fetchone()[0]
+
+            cursor.execute("""
+                insert into tapas.tsne_models (
+                    n_components,
+                    perplexity,
+                    early_exaggeration,
+                    learning_rate,
+                    n_iter,
+                    min_grad_norm,
+                    metric,
+                    init_method,
+                    random_state,
+                    angle,
+                    runs_sequence_number,
+                    runs_id
+                )
+                values (%s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s)
+                returning id
+            """, (
+                tsne_configuration["numDimensions"],
+                tsne_configuration["perplexity"],
+                tsne_configuration["earlyExaggeration"],
+                tsne_configuration["learningRate"],
+                tsne_configuration["numIterations"],
+                pow(10, tsne_configuration["minGradNorm"]),
+                tsne_configuration["metric"],
+                tsne_configuration["initMethod"],
+                tsne_configuration["randomState"],
+                tsne_configuration["angle"],
+                sequence_number_in_run,
+                run_id
+            ))
+
+            self.connection.commit()
+
+            # Return new entry's ID.
+            return cursor.fetchone()[0]
+
+        except psycopg2.Error as e:
+            return -1
+
+    def insert_tsne_coordinates(self, tsne_model_id, word_ids, tsne_result):
+        """
+        Inserts results of t-SNE run (word vectors' low-dim. coordinates) into DB.
+        :param tsne_model_id:
+        :param word_ids: DB IDs of words. In same sequence as entries in tsne_result.
+        :param tsne_result:
+        :return:
+        """
+        cursor = self.connection.cursor()
+
+        # 0. Create tuples to insert.
+        tuples_to_insert = [
+            # Pick word's DB index at this position; cast numpy values to int.
+            (int(word_ids[i]), tsne_model_id, [x.item() for x in tsne_result[i]])
+            for i in range(0, word_ids.shape[0])
+        ]
+
+        # 1. Drop foreign key constraints to other tables before import.
+        cursor.execute("""
+            ALTER TABLE tapas.word_vectors_in_tsne_models
+            DROP CONSTRAINT IF EXISTS word_vectors_in_tsne_models_word_vectors;
+
+            ALTER TABLE tapas.word_vectors_in_tsne_models
+            DROP CONSTRAINT IF EXISTS word_vectors_in_tsne_models_tsne_models;
+        """)
+
+        # 2. Write word vectors to DB.
+        cursor.execute(cursor.mogrify("insert into tapas.word_vectors_in_tsne_models ("
+                                      "         word_vectors_id, "
+                                      "         tsne_models_id, "
+                                      "         coordinates) "
+                                      " values " +
+                                      ','.join(["%s"] * len(tuples_to_insert)), tuples_to_insert))
+
+        # 3. Reintroduce foreign key constraints.
+        cursor.execute("""
+            ALTER TABLE tapas.word_vectors_in_tsne_models ADD CONSTRAINT word_vectors_in_tsne_models_tsne_models
+            FOREIGN KEY (tsne_models_id)
+            REFERENCES tapas.tsne_models (id)
+            NOT DEFERRABLE
+            INITIALLY IMMEDIATE;
+
+            ALTER TABLE tapas.word_vectors_in_tsne_models ADD CONSTRAINT word_vectors_in_tsne_models_word_vectors
+            FOREIGN KEY (word_vectors_id)
+            REFERENCES tapas.word_vectors (id)
+            NOT DEFERRABLE
+            INITIALLY IMMEDIATE;
+        """)
 
         self.connection.commit()

@@ -8,6 +8,7 @@ from flask import request, redirect, url_for, send_from_directory
 import backend.utils.Utils as Utils
 from backend.algorithm.WordVector import WordVector
 from backend.algorithm.QVEC import QVECConfiguration
+from backend.algorithm.TSNEModel import TSNEModel
 import werkzeug
 from flask import jsonify
 from backend.algorithm.WordEmbeddingClusterer import WordEmbeddingClusterer
@@ -27,6 +28,22 @@ def init_flask_app():
     return app
 
 
+def fetch_word_embedding_for_dataset(app, dataset_name, invalidate_cache=False):
+    """
+    Fetches word embedding from database. Uses cached version, if available and cache invalidation not forced.
+    :param app:
+    :param dataset_name:
+    :param invalidate_cache:
+    :return:
+    """
+    word_embedding_dict = app.config["DATA"]["word_embeddings"]
+
+    # Fetch word embedding from DB, if not done yet.
+    if dataset_name not in word_embedding_dict or invalidate_cache:
+        word_embedding_dict[dataset_name] = app.config["DB_CONNECTOR"].read_word_vectors_for_dataset(dataset_name)
+
+    return word_embedding_dict[dataset_name]
+
 # Initialize logger.
 logger = Utils.create_logger()
 # Initialize flask app.
@@ -37,6 +54,8 @@ app.config["DB_CONNECTOR"] = Utils.connect_to_database(False)
 app.config["VERSION"] = "0.1"
 # Define container for repeatedly used data objects.
 app.config["DATA"] = {}
+app.config["DATA"]["word_embeddings"] = {}
+
 
 # root: Render HTML for start menu.
 @app.route("/")
@@ -114,7 +133,10 @@ def fetch_dataset_word_counts():
 
 @app.route('/create_new_run', methods=["POST"])
 def create_new_run():
-    return str(app.config["DB_CONNECTOR"].insert_new_run(request.get_json()))
+    # Insert new run into DB.
+    app.config["DB_CONNECTOR"].insert_new_run(request.get_json())
+
+    return "200"
 
 
 @app.route('/runs', methods=["GET"])
@@ -131,12 +153,12 @@ def determine_wordembedding_accuracy():
     dataset_name = request.get_json()
 
     # Fetch word embedding from DB.
-    word_embedding = app.config["DB_CONNECTOR"].read_word_vectors_for_dataset(request.get_json())
+    fetch_word_embedding_for_dataset(app=app, dataset_name=dataset_name, invalidate_cache=False)
 
     qvec = QVECConfiguration()
     app.config["DB_CONNECTOR"].set_dataset_qvec_score(
         dataset_name=dataset_name,
-        qvec_score=qvec.run(word_embedding=word_embedding)
+        qvec_score=qvec.run(word_embedding=app.config["DATA"]["word_embeddings"][dataset_name])
     )
     return "200"
 
@@ -149,14 +171,50 @@ def cluster_wordembedding():
     """
     dataset_name = request.get_json()
 
-    # Fetch word embedding from DB.
-    word_embedding = app.config["DB_CONNECTOR"].read_word_vectors_for_dataset(dataset_name)
+    # Fetch word embedding from DB, if not done yet.
+    fetch_word_embedding_for_dataset(app=app, dataset_name=dataset_name, invalidate_cache=False)
 
-    clusterer = WordEmbeddingClusterer(word_embedding)
-    word_embedding["cluster_id"] = clusterer.run()
+    clusterer = WordEmbeddingClusterer(app.config["DATA"]["word_embeddings"][dataset_name])
+    app.config["DATA"]["word_embeddings"][dataset_name]["cluster_id"] = clusterer.run()
 
     # Update word vector's cluster ID in DB.
-    app.config["DB_CONNECTOR"].update_word_vectors_cluster_ids(word_embedding=word_embedding)
+    app.config["DB_CONNECTOR"].update_word_vectors_cluster_ids(
+        word_embedding=app.config["DATA"]["word_embeddings"][dataset_name]
+    )
+
+    return "200"
+
+
+@app.route('/create_initial_tsne_model', methods=["POST"])
+def create_initial_tsne_model():
+    initial_tsne_parameters = request.get_json()
+    dataset_name = initial_tsne_parameters["dataset"]
+    num_words_to_use = initial_tsne_parameters["numWords"]
+
+    # Fetch word embedding from DB, if not done yet.
+    fetch_word_embedding_for_dataset(app=app, dataset_name=dataset_name, invalidate_cache=False)
+
+    # 1. Insert metadata for initial t-SNE model.
+    tsne_model_id = app.config["DB_CONNECTOR"].insert_tsne_model(
+        tsne_configuration=initial_tsne_parameters,
+        sequence_number_in_run=1
+    )
+
+    # 2. If t-SNE model doesn't exist yet: Generate, persist.
+    if tsne_model_id != -1:
+        limited_word_embedding = app.config["DATA"]["word_embeddings"][dataset_name].head(num_words_to_use)
+
+        # Calculate and persist initial t-SNE model.
+        initial_tsne_model = TSNEModel.generate_instance_from_dict(initial_tsne_parameters)
+        app.config["DB_CONNECTOR"].insert_tsne_coordinates(
+            tsne_model_id=tsne_model_id,
+            word_ids=limited_word_embedding['id'].values,
+            tsne_result=initial_tsne_model.run(
+                word_embedding=limited_word_embedding
+            )
+        )
+
+    # 3. Calculate measures.
 
     return "200"
 

@@ -50,7 +50,7 @@ CREATE TABLE tapas.tsne_models (
     measure_we_quality real  NULL,
     run_sequence_number int  NOT NULL CHECK (run_sequence_number > 0),
     run_id int  NOT NULL,
-    CONSTRAINT c_u_tsne_models_params_corpora_id UNIQUE (early_exaggeration, perplexity, learning_rate, n_iter, min_grad_norm, init_method, metric, random_state, angle, n_components) NOT DEFERRABLE  INITIALLY IMMEDIATE,
+    CONSTRAINT c_u_tsne_models_params_corpora_id UNIQUE (early_exaggeration, perplexity, learning_rate, n_iter, min_grad_norm, init_method, metric, random_state, angle, n_components, runs_id) NOT DEFERRABLE  INITIALLY IMMEDIATE,
     CONSTRAINT tsne_models_pk PRIMARY KEY (id)
 );
 

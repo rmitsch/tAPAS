@@ -1,10 +1,13 @@
+from MulticoreTSNE import MulticoreTSNE as MulticoreTSNE
+import numpy
+
+
 class TSNEModel:
     """
     Representation of t-SNE model including configuration and actual data.
     """
 
     def __init__(self,
-                 dataset_name,
                  num_words,
                  num_dimensions,
                  perplexity,
@@ -21,8 +24,6 @@ class TSNEModel:
                  measure_weight_generalization,
                  measure_weight_relative_weq):
         """
-
-        :param dataset_name:
         :param num_words:
         :param num_dimensions:
         :param perplexity:
@@ -40,7 +41,6 @@ class TSNEModel:
         :param measure_weight_relative_weq:
         """
 
-        self.dataset_name = dataset_name
         self.num_words = num_words
         self.num_dimensions = num_dimensions
         self.perplexity = perplexity
@@ -56,19 +56,42 @@ class TSNEModel:
         self.measure_weight_continuity = measure_weight_continuity
         self.measure_weight_generalization = measure_weight_generalization
         self.measure_weight_relative_weq = measure_weight_relative_weq
+        self.tsne_model = None
 
-        print(', '.join("%s: %s" % item for item in vars(self).items()))
+    def run(self, word_embedding):
+        """
+        Runs t-SNE model with specified parameters and data. Returns result.
+        :param word_embedding: Word embedding; expected to be only as long as self.num_words.
+        :return:
+        """
+        word_vector_data = numpy.stack(word_embedding['values'].values, axis=0)
+
+        # Consider num_words!
+        tsne = MulticoreTSNE(
+            n_components=self.num_dimensions,
+            perplexity=self.perplexity,
+            early_exaggeration=self.early_exaggeration,
+            learning_rate=self.learning_rate,
+            n_iter=self.num_iterations,
+            min_grad_norm=self.min_grad_norm,
+            random_state=self.random_state,
+            angle=self.angle,
+            metric=self.metric,
+            init=self.init_method,
+            n_jobs=2)
+
+        # Train TSNE on gensim's model, return results.
+        return tsne.fit_transform(word_vector_data)
 
     @staticmethod
-    def generate_instance_from_json_dict(param_dict):
+    def generate_instance_from_dict(param_dict):
         """
-        Generates TSNEModel from json dictionary.
+        Generates TSNEModel from dictionary.
         :param param_dict:
         :return: TSNEModel instance.
         """
 
         return TSNEModel(
-            dataset_name=param_dict["dataset"],
             num_words=param_dict["numWords"],
             num_dimensions=param_dict["numDimensions"],
             perplexity=param_dict["perplexity"],

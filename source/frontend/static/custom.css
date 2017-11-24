@@ -177,7 +177,7 @@ span.ui-slider-handle.ui-corner-all.ui-state-default {
     width: 96%;
 }
 
-div#nprNumberOfWordsContainer span.irs.js-irs-1.irs-with-grid,
+div#nprNumberOfWordsContainer span.irs-with-grid,
 div#initialParameterGrid span.irs-with-grid, div#measureWeightGrid span.irs-with-grid {
     top: -36px;
 }
@@ -186,7 +186,6 @@ div#initialParameterGrid div.styled-select  {
     position: relative;
     top: -9px;
 }
-
 
 #measureWeightGrid .pure-u-1-5 {
     margin-bottom:0px;
@@ -414,11 +413,29 @@ body, html {
     background: #cccccc;
 }
 
-#upload_status_progressLabel {
+div.progressLabel {
     font-size: 12px;
     color: #fff;
     position: relative;
     top: -50px;
     left: -50px;
     width: 200px;
+}
+
+#newRun_status {
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    top: -54px;
+    height: 32px;
+    width: 200px;
+    display: none;
+    background: #cccccc;
+}
+
+#newRun_status_progressLabel {
+    top: -77px;
+    left: 0;
+    margin-left: auto;
+    margin-right: auto;
 }

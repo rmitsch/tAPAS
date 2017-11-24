@@ -80,7 +80,7 @@
                 <b><a class="pure-button pure-button-primary">Choose file</a></b>
             </div>
             <div id="upload_status"></div>
-            <div id="upload_status_progressLabel"></div>
+            <div class="progressLabel" id="upload_status_progressLabel"></div>
         </div>
 
     </div>
@@ -255,7 +255,11 @@
         </div>
     </div>
     <hr><br/>
-    <a class="pure-button pure-button-primary" id="createRunButton" href="javascript:createNewRun()">Create run</a>
+    <div>
+        <a class="pure-button" id="createRunButton" href="javascript:createNewRun()">Create run</a>
+        <div id="newRun_status"></div>
+        <div class="progressLabel" id="newRun_status_progressLabel"></div>
+    </div>
 </div>
 <div class="carouselElement" id="runopt_carouselElement">
     <div class="splash-text">

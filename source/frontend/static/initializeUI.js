@@ -294,10 +294,27 @@ function createNewRun()
           url: "/create_new_run",
           data: JSON.stringify(parameters),
           success: function(html_data) {
-            if (html_data == "Success")
-                alert("Successfully added run.");
-            else
-                alert("Error at data insert.");
+            // Init progress bar.
+            $("#newRun_status").progressbar({
+                value: 10
+            });
+            $("#newRun_status").css({'display': 'block'});
+            $("#newRun_status .ui-progressbar-value").css({'background': '#3d4a57'});
+            $("#newRun_status_progressLabel").html("Creating initial t-SNE model.");
+
+            // Create initial t-SNE model.
+            $.ajax({
+                type: "POST",
+                url: "/create_initial_tsne_model",
+                data: JSON.stringify(parameters),
+                success: function(html_data) {
+                    $("#newRun_status").progressbar({
+                        value: 100
+                    });
+                    $("#newRun_status_progressLabel").html("Finished.");
+                },
+                contentType: "application/json"
+            });
           },
           contentType: "application/json"
         });
