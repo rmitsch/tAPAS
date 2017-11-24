@@ -1,7 +1,4 @@
-from sklearn.datasets import make_blobs
-import pandas as pd
-import hdbscan as hdbscan_lib
-import pydpc
+import sklearn.cluster
 import numpy
 
 
@@ -20,7 +17,13 @@ class WordEmbeddingClusterer:
     def run(self):
         # Stack vectors so scikit-learn/HDBSCAN accepts the data; start clustering.
         data = numpy.stack(self.word_embedding['values'].values, axis=0)
-        clu = pydpc.Cluster(data, fraction=0.2)
-        clu.assign(16, 1.54)
+        # Assume one cluster per 10% of words.
+        kmeans_model = sklearn.cluster.MiniBatchKMeans(
+            init='k-means++',
+            init_size=int(data.shape[0] / 10 * 3),
+            max_iter=3000,
+            n_clusters=int(data.shape[0] / 10)
+        )
+        kmeans_model.fit(data)
 
-        return clu.membership
+        return kmeans_model.labels_

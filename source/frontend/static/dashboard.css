@@ -128,32 +128,36 @@ span.runopt_histogramMaxValueLabel {
     margin-bottom: 0px;
 }
 
-#runopt_qualitySliderContainer {
-    float: right;
+div.runopt_evalBoxSliderContainer {
+    display: inline-block;
     width: 180px;
-    margin-bottom: 30px;
+    margin-top: 15px;
 }
 
-#runopt_qualitySliderLabel {
+
+div.runopt_evalBoxSliderLabel {
+    display: inline-block;
+    width: 116px;
     position: relative;
-    top: 36px;
+    top: 29px;
 }
 
 #runopt_numModelIterations_label {
     display:inline-block;
     width: 235px;
     position: relative;
-    top: -20px;
+    margin-top: 15px;
 }
 
 #runopt_qualityEvaluationBox_stepper {
     width: 40px;
     position: relative;
-    top: -20px;
+    margin-top: 15px;
 }
 
 #runopt_confirmModelQuality {
     margin-left: 80px;
+    margin-top: 20px;
 }
 
 #qualityPane {

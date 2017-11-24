@@ -14,10 +14,19 @@
         <span id="qualityEvaluationBox_datasetName"></span>
         run#23 | word.vec.en
     </div>
-    <div id="runopt_qualitySliderLabel">Model quality:</div>
-    <div id="runopt_qualitySliderContainer">
-        <input type="text" id="runopt_qualitySlider" value="" name="runopt_qualitySlider" />
+    <div>
+        <div class="runopt_evalBoxSliderLabel">Words to display:</div>
+        <div class="runopt_evalBoxSliderContainer">
+            <input type="text" id="runopt_showNumberOfWordsSlider" value="" name="runopt_qualitySlider" />
+        </div>
     </div>
+    <div>
+        <div class="runopt_evalBoxSliderLabel">Model quality:</div>
+        <div class="runopt_evalBoxSliderContainer">
+            <input type="text" id="runopt_qualitySlider" value="" name="runopt_qualitySlider" />
+        </div>
+    </div>
+
     <div id="runopt_numModelIterations_label">Number of intermediate models:</div>
     <input class="inlineBlock" id="runopt_qualityEvaluationBox_stepper" type="number" value="1" step="1" min="0" />
     <a class="pure-button" id="runopt_confirmModelQuality" href="javascript:alert('blub')">Confirm and proceed</a>

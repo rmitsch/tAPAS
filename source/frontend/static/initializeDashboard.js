@@ -338,6 +338,23 @@ function initQualityEvaluationBox()
 {
     let calculatedQuality = 0.5;
 
+    // Initialize slider for regulating number of words to show.
+    $("#runopt_showNumberOfWordsSlider").ionRangeSlider({
+        hide_min_max: true,
+        keyboard: true,
+        min: 0,
+        max: 10000,
+        from: 1000,
+        type: 'single',
+        step: 10,
+        grid: true,
+        grid_num: 3,
+        // Define hooks to steppers.
+        onChange: function (data) {
+            // Fetch corresponding stepper element.
+        }
+    });
+
     // Initialize quality evaluation slider.
     $("#runopt_qualitySlider").ionRangeSlider({
         hide_min_max: true,
@@ -352,7 +369,6 @@ function initQualityEvaluationBox()
         // Define hooks to steppers.
         onChange: function (data) {
             // Fetch corresponding stepper element.
-
         }
     });
 
@@ -360,7 +376,7 @@ function initQualityEvaluationBox()
     $("#qualityEvaluationBox").mouseenter(function() {
         $("#qualityEvaluationBox").animate({
             width: "300px",
-            height: "190px",
+            height: "265px",
         }, 100, function() {});
     });
     // Initialize leave listener.
@@ -369,7 +385,6 @@ function initQualityEvaluationBox()
             width: "150px",
             height: "25px",
         }, 100, function() {});
-
     });
 }
 
