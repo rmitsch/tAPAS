@@ -9,23 +9,30 @@ import pickle
 import hdbscan
 import sklearn.cluster
 from MulticoreTSNE import MulticoreTSNE as MulticoreTSNE
+import coranking
+from coranking.metrics import trustworthiness, continuity
 
 
 db_connector = Utils.connect_to_database(False)
 
 word_embedding = db_connector.read_word_vectors_for_dataset("wiki_small.en.vec")
-word_embedding_small = word_embedding.head(n=100)
+word_embedding_small = word_embedding.head(n=1000)
 
 stacked_wordvectors = numpy.stack(word_embedding['values'].values, axis=0)
 
-tsne = MulticoreTSNE(n_components=2,
-                     method='barnes_hut',
-                     metric='euclidean',
-                     # todo Remove after tests are done.
-                     perplexity=2,
-                     # todo Remove after tests are done.
-                     angle=0.9,
-                     verbose=1,
-                     n_jobs=2)
-# Train TSNE on gensim's model.
-tsne_results = tsne.fit_transform(stacked_wordvectors)
+
+# 1. Load t-SNE results.
+tsne_results = db_connector.read_tsne_results(tsne_model_id=42)
+
+limited_word_embedding_vector_array = numpy.stack(word_embedding_small["values"].values, axis=0)
+tsne_model_vector_array = numpy.stack(tsne_results["values"].values, axis=0)
+
+coranking_matrix = coranking.coranking_matrix(limited_word_embedding_vector_array, tsne_model_vector_array)
+
+# 4. Calculate trustworthiness.
+trust = trustworthiness(coranking_matrix.astype(numpy.float16), min_k=99, max_k=100)
+
+# 5. Calculate continuity.
+cont = continuity(coranking_matrix.astype(numpy.float16), min_k=99, max_k=100)
+
+print(trust, cont)

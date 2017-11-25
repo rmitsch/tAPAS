@@ -449,11 +449,12 @@ class DBConnector:
         except psycopg2.Error as e:
             return -1
 
-    def insert_tsne_coordinates(self, tsne_model_id, word_ids, tsne_result):
+    def insert_tsne_coordinates(self, tsne_model_id, word_ids, cluster_ids, tsne_result):
         """
         Inserts results of t-SNE run (word vectors' low-dim. coordinates) into DB.
         :param tsne_model_id:
         :param word_ids: DB IDs of words. In same sequence as entries in tsne_result.
+        :param cluster_ids:
         :param tsne_result:
         :return:
         """
@@ -462,7 +463,7 @@ class DBConnector:
         # 0. Create tuples to insert.
         tuples_to_insert = [
             # Pick word's DB index at this position; cast numpy values to int.
-            (int(word_ids[i]), tsne_model_id, [x.item() for x in tsne_result[i]])
+            (int(word_ids[i]), tsne_model_id, int(cluster_ids[i]), [x.item() for x in tsne_result[i]])
             for i in range(0, word_ids.shape[0])
         ]
 
@@ -479,6 +480,7 @@ class DBConnector:
         cursor.execute(cursor.mogrify("insert into tapas.word_vectors_in_tsne_models ("
                                       "         word_vectors_id, "
                                       "         tsne_models_id, "
+                                      "         cluster_id, "
                                       "         coordinates) "
                                       " values " +
                                       ','.join(["%s"] * len(tuples_to_insert)), tuples_to_insert))
@@ -497,5 +499,86 @@ class DBConnector:
             NOT DEFERRABLE
             INITIALLY IMMEDIATE;
         """)
+
+        self.connection.commit()
+
+    def read_tsne_results(self, tsne_model_id):
+        """
+        Fetches all coordinate vectors and cluster IDs for specified t-SNE model.
+        :param tsne_model_id:
+        :return: Dataframe with words as index and coordinates, cluster ID as value.
+        """
+        cursor = self.connection.cursor()
+
+        # Get word vector data and store it in dataframe.
+        cursor.execute("""
+            select
+              wv.word,
+              wvt.coordinates,
+              wvt.cluster_id
+            from
+              tapas.word_vectors_in_tsne_models wvt
+            inner join tapas.word_vectors wv on
+              wv.id = wvt.word_vectors_id
+            where
+              tsne_models_id = %s
+        """, (tsne_model_id,))
+
+        # Create dataframe with data. Cast vector data to numpy arrays.
+        return pandas.DataFrame.from_records(
+            [[row[0], numpy.asarray(row[1]), int(row[2])] for row in cursor.fetchall()],
+            columns=["word", "values", "cluster_id"],
+            index=["word"]
+        )
+
+    def set_tsne_quality_scores(self, tsne_id, qvec_score, trustworthiness, continuity, generalization_accuracy):
+        """
+        Writes calculated quality scores for t-SNE model to DB.
+        :param tsne_id:
+        :param qvec_score:
+        :param trustworthiness:
+        :param continuity:
+        :param generalization_accuracy:
+        :return:
+        """
+        cursor = self.connection.cursor()
+
+        # Fetch dataset's QVEC score to calculate relative word embedding information ratio.
+        cursor.execute("""
+            with
+
+            dataset_qvec_score as (
+                select
+                    d.qvec_score
+                from
+                    tapas.datasets d
+                inner join tapas.runs r on
+                    r.datasets_id = d.id
+                inner join tapas.tsne_models tm on
+                    tm.runs_id = r.id and
+                    tm.id = %s
+            )
+
+            update tapas.tsne_models
+            set
+                measure_trustworthiness = %s,
+                measure_continuity = %s,
+                measure_generalization_accuracy = %s,
+                measure_word_embedding_information_ratio = %s / (
+                  select
+                    qvec_score
+                  from
+                    dataset_qvec_score
+                )::float
+            where
+                id = %s
+            ;
+        """, (
+            tsne_id,
+            trustworthiness,
+            continuity,
+            generalization_accuracy,
+            qvec_score,
+            tsne_id))
 
         self.connection.commit()

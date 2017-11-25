@@ -307,11 +307,29 @@ function createNewRun()
                 type: "POST",
                 url: "/create_initial_tsne_model",
                 data: JSON.stringify(parameters),
-                success: function(html_data) {
+                success: function(tsne_model_id) {
                     $("#newRun_status").progressbar({
-                        value: 100
+                        value: 40
                     });
-                    $("#newRun_status_progressLabel").html("Finished.");
+                    $("#newRun_status_progressLabel").html("Calculating quality measures.");
+
+                    // Calculate quality measures.
+                    $.ajax({
+                        type: "POST",
+                        url: "/calculate_quality_measures",
+                        data: JSON.stringify({
+                            tsne_model_id: tsne_model_id,
+                            dataset_name: parameters.dataset,
+                            num_words: parameters.numWords
+                        }),
+                        success: function(html_data) {
+                            $("#newRun_status").progressbar({
+                                value: 100
+                            });
+                            $("#newRun_status_progressLabel").html("Finished.");
+                        },
+                        contentType: "application/json"
+                    });
                 },
                 contentType: "application/json"
             });

@@ -4,7 +4,7 @@
 
 from flask import Flask
 from flask import render_template
-from flask import request, redirect, url_for, send_from_directory
+from flask import request
 import backend.utils.Utils as Utils
 from backend.algorithm.WordVector import WordVector
 from backend.algorithm.QVEC import QVECConfiguration
@@ -12,6 +12,10 @@ from backend.algorithm.TSNEModel import TSNEModel
 import werkzeug
 from flask import jsonify
 from backend.algorithm.WordEmbeddingClusterer import WordEmbeddingClusterer
+import coranking
+from coranking.metrics import trustworthiness, continuity
+import numpy
+import sklearn.neighbors
 
 
 def init_flask_app():
@@ -174,8 +178,13 @@ def cluster_wordembedding():
     # Fetch word embedding from DB, if not done yet.
     fetch_word_embedding_for_dataset(app=app, dataset_name=dataset_name, invalidate_cache=False)
 
-    clusterer = WordEmbeddingClusterer(app.config["DATA"]["word_embeddings"][dataset_name])
-    app.config["DATA"]["word_embeddings"][dataset_name]["cluster_id"] = clusterer.run()
+    # Prepare and cluster data.
+    we_clusterer = WordEmbeddingClusterer(
+        WordEmbeddingClusterer.prepare_word_embedding_dataset(
+            WordEmbeddingClusterer(app.config["DATA"]["word_embeddings"][dataset_name])
+        )
+    )
+    app.config["DATA"]["word_embeddings"][dataset_name]["cluster_id"] = we_clusterer.run()
 
     # Update word vector's cluster ID in DB.
     app.config["DB_CONNECTOR"].update_word_vectors_cluster_ids(
@@ -187,6 +196,10 @@ def cluster_wordembedding():
 
 @app.route('/create_initial_tsne_model', methods=["POST"])
 def create_initial_tsne_model():
+    """
+    Calculates initial t-SNE model for newly created run.
+    :return:
+    """
     initial_tsne_parameters = request.get_json()
     dataset_name = initial_tsne_parameters["dataset"]
     num_words_to_use = initial_tsne_parameters["numWords"]
@@ -204,17 +217,70 @@ def create_initial_tsne_model():
     if tsne_model_id != -1:
         limited_word_embedding = app.config["DATA"]["word_embeddings"][dataset_name].head(num_words_to_use)
 
-        # Calculate and persist initial t-SNE model.
+        # Calculate t-SNE model.
         initial_tsne_model = TSNEModel.generate_instance_from_dict(initial_tsne_parameters)
+        tsne_results = initial_tsne_model.run(word_embedding=limited_word_embedding)
+
+        # Calculate and persist initial, clustered t-SNE model.
         app.config["DB_CONNECTOR"].insert_tsne_coordinates(
             tsne_model_id=tsne_model_id,
             word_ids=limited_word_embedding['id'].values,
-            tsne_result=initial_tsne_model.run(
-                word_embedding=limited_word_embedding
-            )
+            cluster_ids=WordEmbeddingClusterer(tsne_results).run(),
+            tsne_result=tsne_results
         )
 
-    # 3. Calculate measures.
+    return str(tsne_model_id)
+
+
+@app.route('/calculate_quality_measures', methods=["POST"])
+def calculate_quality_measures():
+    """
+    Calculates quality measures (QVEC, trustworthiness, continuity, generalization accuracy) for t-SNE model.
+    :return:
+    """
+    dataset_name = request.get_json()["dataset_name"]
+    tsne_model_id = request.get_json()["tsne_model_id"]
+    num_words_to_use = request.get_json()["num_words"]
+
+    # 0. Fetch word embedding from DB, if not done yet.
+    fetch_word_embedding_for_dataset(app=app, dataset_name=dataset_name, invalidate_cache=False)
+    limited_word_embedding = app.config["DATA"]["word_embeddings"][dataset_name].head(num_words_to_use)
+
+    # 1. Load t-SNE results.
+    tsne_results = app.config["DB_CONNECTOR"].read_tsne_results(tsne_model_id=tsne_model_id)
+
+    # 2. Calculate QVEC score.
+    qvec_score = QVECConfiguration().run(word_embedding=tsne_results)
+
+    # 3. Calculate coranking matrix.
+    limited_word_embedding_vector_array = numpy.stack(limited_word_embedding["values"].values, axis=0)
+    tsne_model_vector_array = numpy.stack(tsne_results["values"].values, axis=0)
+    coranking_matrix = coranking.coranking_matrix(limited_word_embedding_vector_array, tsne_model_vector_array)
+
+    # 4. Calculate trustworthiness.
+    trust = trustworthiness(coranking_matrix.astype(numpy.float16), min_k=99, max_k=100)
+
+    # 5. Calculate continuity.
+    cont = continuity(coranking_matrix.astype(numpy.float16), min_k=99, max_k=100)
+
+    # 6. Calculate generalization accuracy.
+    # Use nearest neighbour search with ball tree to find nearest neighbour in t-SNE vector space.
+    neighbours = sklearn.neighbors.NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(tsne_model_vector_array)
+    distances, indices = neighbours.kneighbors(tsne_model_vector_array)
+    # Classify points using the cluster ID's of their nearest neighbours, compare with their actual cluster ID to
+    # calculate generalization accuracy.
+    predicted_cluster_values = limited_word_embedding.iloc[indices[:, 1]]["cluster_id"].values
+    actual_cluster_values = limited_word_embedding["cluster_id"].values
+    generalization_accuracy = numpy.sum(predicted_cluster_values == actual_cluster_values) / num_words_to_use
+
+    # 7. Store results in DB.
+    app.config["DB_CONNECTOR"].set_tsne_quality_scores(
+        trustworthiness=float(trust[0]),
+        continuity=float(cont[0]),
+        generalization_accuracy=generalization_accuracy,
+        qvec_score=qvec_score,
+        tsne_id=tsne_model_id
+    )
 
     return "200"
 
