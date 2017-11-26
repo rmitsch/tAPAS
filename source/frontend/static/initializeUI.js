@@ -133,6 +133,9 @@ chartElements = {
             prettify_enabled: true,
             prettify: function (num) {
                 return ("10<sup>-" + num + "</sup>");
+            },
+            normalize: function(num) {
+                return Math.log10(num);
             }
         },
 
@@ -358,9 +361,8 @@ function updateCarousel(menuItemID)
     // If "Run optimization" is selected: Show dialog.
     if(menuItemID == "menu_run") {
         $(document).ready(function(){
-            // Show dialog and dashboard.
-            $("#dashboard").css("display", "block");
-//            $( "#runopt_dialog" ).dialog("open");
+            // Show dialog.
+            $( "#runopt_dialog" ).dialog("open");
             // Hide carousel.
             $("#carousel").css("display", "none");
         });
@@ -368,8 +370,8 @@ function updateCarousel(menuItemID)
     // Otherwise: Hide dialog again.
     else {
         $(document).ready(function(){
-            // Hide dialog and dasboard.
-//            $( "#runopt_dialog" ).dialog("close");
+            // Hide dialog and dashboard.
+            $( "#runopt_dialog" ).dialog("close");
             $("#dashboard").css("display", "none");
             // Show carousel.
             $("#carousel").css("display", "block");
@@ -558,7 +560,7 @@ function initSlickCarousel()
 
     // Initialize popup for selection of run.
     $(document).ready(function(){
-        $( "#runopt_dialog" ).dialog({
+        $("#runopt_dialog").dialog({
             autoOpen: false,
             modal: true
         });
@@ -588,9 +590,9 @@ function binData(data, key, config, numberOfBins)
 
         for (let i = 0; i < data.length; i++) {
             // .toLowerCase() since for whatever reason column titles are returned that way.
-            // Special case minGradNorm: Displayed as total numbers, stored as components.
             if (key != "minGradNorm")
                 attributeValues.push(data[i][key.toLowerCase()]);
+            // Special case minGradNorm: Displayed as total numbers, stored as components.
             else
                 attributeValues.push(Math.log10(data[i][key.toLowerCase()]));
         }
@@ -643,8 +645,8 @@ function initInitialParameterHistograms(dataset_metadata)
             let currElement = chartElements["menu_createrun"][key];
 
             // Bin data.
-            binnedData = binData(dataset_metadata, key, currElement, 10);
-            binnedData.unshift("data");
+            binnedData = binDataCategorically(dataset_metadata, key.toLowerCase(), currElement, 10, 10);
+            binnedData.data.unshift("Count");
 
             // If element has histogram:
             if (currElement["histogram"] != null) {
@@ -652,10 +654,10 @@ function initInitialParameterHistograms(dataset_metadata)
                     bindto: "#" + currElement["histogram"],
                     data: {
                         columns: [
-                            binnedData
+                            binnedData.data
                         ],
                         colors: {
-                            data: '#3d4a57'
+                            Count: '#3d4a57'
                         },
                         type: 'bar'
                     },

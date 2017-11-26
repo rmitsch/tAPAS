@@ -157,53 +157,55 @@ class DBConnector:
         """
         cursor = self.connection.cursor()
 
-        cursor.execute("select "
-                       "  row_to_json(t) "
-                       "from ("
-                       "  select "
-                       "   d.name as dataset, "
-                       "   r.title, "
-                       "   r.measure_weight_trustworthiness as measureWeight_trustworthiness, "
-                       "   r.measure_weight_continuity as measureWeight_continuity, "
-                       "   r.measure_weight_generalization_accuracy as measureWeight_generalization, "
-                       "   r.measure_weight_we_information_ratio as measureWeight_relativeWEQ, "
-                       "   r.init_n_components as numDimensions, "
-                       "   r.init_perplexity as perplexity, "
-                       "   r.init_early_exaggeration as earlyExaggeration, "
-                       "   r.init_learning_rate as learningRate, "
-                       "   r.init_n_iter as numIterations, "
-                       "   r.init_min_grad_norm as minGradNorm, "
-                       "   r.init_metric as metric, "
-                       "   r.init_init_method as initMethod, "
-                       "   r.init_random_state as randomState, "
-                       "   r.init_angle as angle, "
-                       "   r.num_words as numWords, "
-                       "   count(distinct wv.id) as dataset_numWords"
-                       " from "
-                       "   tapas.datasets d "
-                       " inner join tapas.runs r on "
-                       "   r.datasets_id = d.id "
-                       " inner join tapas.word_vectors wv on "
-                       "   wv.datasets_id = d.id "
-                       "  group by "
-                       "   d.name, "
-                       "   r.title, "
-                       "   r.measure_weight_trustworthiness, "
-                       "   r.measure_weight_continuity, "
-                       "   r.measure_weight_generalization_accuracy, "
-                       "   r.measure_weight_we_information_ratio, "
-                       "   r.init_n_components, "
-                       "   r.init_perplexity, "
-                       "   r.init_early_exaggeration, "
-                       "   r.init_learning_rate, "
-                       "   r.init_n_iter, "
-                       "   r.init_min_grad_norm, "
-                       "   r.init_metric, "
-                       "   r.init_init_method, "
-                       "   r.init_random_state, "
-                       "   r.init_angle, "
-                       "   r.num_words "
-                       ") t ")
+        cursor.execute("""
+            select
+             row_to_json(t)
+           from (
+             select
+              d.name as dataset,
+              r.title,
+              r.measure_weight_trustworthiness as measureWeight_trustworthiness,
+              r.measure_weight_continuity as measureWeight_continuity,
+              r.measure_weight_generalization_accuracy as measureWeight_generalization,
+              r.measure_weight_we_information_ratio as measureWeight_relativeWEQ,
+              r.init_n_components as numDimensions,
+              r.init_perplexity as perplexity,
+              r.init_early_exaggeration as earlyExaggeration,
+              r.init_learning_rate as learningRate,
+              r.init_n_iter as numIterations,
+              r.init_min_grad_norm as minGradNorm,
+              r.init_metric as metric,
+              r.init_init_method as initMethod,
+              r.init_random_state as randomState,
+              r.init_angle as angle,
+              r.num_words as numWords,
+              count(distinct wv.id) as dataset_numWords
+            from
+              tapas.datasets d
+            inner join tapas.runs r on
+              r.datasets_id = d.id
+            inner join tapas.word_vectors wv on
+              wv.datasets_id = d.id
+             group by
+              d.name,
+              r.title,
+              r.measure_weight_trustworthiness,
+              r.measure_weight_continuity,
+              r.measure_weight_generalization_accuracy,
+              r.measure_weight_we_information_ratio,
+              r.init_n_components,
+              r.init_perplexity,
+              r.init_early_exaggeration,
+              r.init_learning_rate,
+              r.init_n_iter,
+              r.init_min_grad_norm,
+              r.init_metric,
+              r.init_init_method,
+              r.init_random_state,
+              r.init_angle,
+              r.num_words
+           ) t
+        """)
         res = cursor.fetchall()
 
         return [row[0] for row in res]
@@ -323,8 +325,7 @@ class DBConnector:
         """
         Fetches all word vectors for specified dataset.
         :param dataset_name:
-        :return: Word vector metadata as dataframe, actual word vectors as numpy array of numpy arrays, dictionary for
-        looking up word vectors by words in word vector array.
+        :return: Dataframe with word vector data and metadata.
         """
         cursor = self.connection.cursor()
 
@@ -582,3 +583,89 @@ class DBConnector:
             tsne_id))
 
         self.connection.commit()
+
+    def read_tsne_results_for_latest_tsne_model_in_run(self, run_title):
+        """
+        Reads t-SNE values for latest t-SNE model in specified run.
+        See self.read_tsne_results(tsne_model_id).
+        :param run_title:
+        :param limit_to_number_of_words_to_use: Specifies whether all results or just the first number_of_words should
+        be returned. Words are picked based on their indices (lower ones being more frequent/important).
+        :return: Dataframe with t-SNE results for latest model in specified run.
+        """
+        cursor = self.connection.cursor()
+
+        # Fetch ID of latest model.
+        cursor.execute("""
+            select
+                tm.id as tsne_model_id
+            from
+                tapas.tsne_models tm
+            inner join tapas.runs r on
+                r.id = tm.runs_id and
+                r.title = %s
+            order by
+                tm.id desc
+            limit 1
+        """, (run_title,))
+        tsne_model_id = cursor.fetchone()[0]
+
+        # Fetch number of words to use for this dataset.
+        cursor.execute("""
+            select
+                r.num_words
+            from
+                tapas.runs r
+            where
+                r.title = %s
+        """, (run_title,))
+
+        # Return t-SNE results, limites to number of words actually to be used.
+        return self.read_tsne_results(tsne_model_id).head(n=cursor.fetchone()[0])
+
+    def read_metadata_for_run(self, run_title):
+        """
+        Reads metadata for all runs in specified dataset.
+        :param run_title:
+        :return:
+        """
+        cursor = self.connection.cursor()
+
+        cursor.execute("""
+            select
+              row_to_json(t)
+            from (
+              select
+                d.name as dataset,
+                r.title,
+                r.num_words,
+                tm.runs_sequence_number,
+                tm.n_components,
+                tm.perplexity,
+                tm.early_exaggeration,
+                tm.learning_rate,
+                tm.n_iter,
+                tm.min_grad_norm,
+                tm.metric,
+                tm.init_method,
+                tm.random_state,
+                tm.angle,
+                tm.measure_trustworthiness,
+                tm.measure_continuity,
+                tm.measure_generalization_accuracy,
+                tm.measure_word_embedding_information_ratio,
+                tm.measure_user_quality
+              from
+                tapas.datasets d
+              inner join tapas.runs r on
+                r.datasets_id = d.id and
+                r.title = %s
+              inner join tapas.tsne_models tm on
+                tm.runs_id = r.id
+              order by
+                r.id asc,
+                tm.runs_sequence_number asc
+            ) t
+        """, (run_title,))
+
+        return [row[0] for row in cursor.fetchall()]

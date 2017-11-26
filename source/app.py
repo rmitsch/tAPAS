@@ -16,6 +16,7 @@ import coranking
 from coranking.metrics import trustworthiness, continuity
 import numpy
 import sklearn.neighbors
+import json
 
 
 def init_flask_app():
@@ -283,6 +284,27 @@ def calculate_quality_measures():
     )
 
     return "200"
+
+
+@app.route('/fetch_latest_tsne_results_for_run', methods=["GET"])
+def fetch_latest_tsne_results_for_run():
+    """
+    Fetches t-SNE results for latest model in specified run.
+    :return:
+    """
+    run_title = request.args["run_title"]
+    tsne_results = app.config["DB_CONNECTOR"].read_tsne_results_for_latest_tsne_model_in_run(run_title=run_title)
+
+    return jsonify(tsne_results.to_json(orient="index"))
+
+
+@app.route('/fetch_model_metadata_in_runs_in_dataset', methods=["GET"])
+def fetch_model_metadata_in_runs_in_dataset():
+    """
+    Fetches metadata for all models in all runs in specified dataset.
+    :return:
+    """
+    return jsonify(app.config["DB_CONNECTOR"].read_metadata_for_run(run_title=request.args["run_title"]))
 
 
 if __name__ == "__main__":
