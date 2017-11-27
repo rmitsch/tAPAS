@@ -436,7 +436,7 @@ function renderHyperparameterPanel(runMetadata, runName, currentTSNESequenceNumb
 
 /**
  * Renders line chart in quality metrics panel.
- * Assumes data is ordered by run sequence number ascendingly.
+ * Assumes exactly one run in the data and that models are ordered by sequence number ascendingly.
  * @param runMetadata
  * @param runName
  * @param currentTSNESequenceNumber
@@ -487,9 +487,8 @@ function renderQualityMetricsPane(runMetadata, runName, currentTSNESequenceNumbe
                 measures.we_information_ratio
             ],
             colors: {
-                Trustworthiness: "#ccc"
             },
-            type: 'line'
+            type: 'step'
         },
         legend: {
             show: true,
@@ -524,6 +523,122 @@ function renderQualityMetricsPane(runMetadata, runName, currentTSNESequenceNumbe
         point: {
             show: true
         }
+    });
+}
+
+/**
+ * From https://github.com/masayuki0812/c3/blob/master/src/tooltip.js#L27:
+ * Change tooltip in order for it to reflect the word placed at this coordinate.
+ */
+function tooltip_contents(d, defaultTitleFormat, defaultValueFormat, color)
+{
+    var $$ = this, config = $$.config, CLASS = $$.CLASS,
+        titleFormat = config.tooltip_format_title || defaultTitleFormat,
+        nameFormat = config.tooltip_format_name || function (name) { return name; },
+        valueFormat = config.tooltip_format_value || defaultValueFormat,
+        text, i, title, value, name, bgcolor;
+
+    for (i = 0; i < d.length; i++) {
+        if (! (d[i] && (d[i].value || d[i].value === 0))) { continue; }
+
+        if (! text) {
+            title = window.CURRENT_TSNE_DATA_LOOKUP[d[0].index].word;
+            text = "<table class='" + CLASS.tooltip + "'>" + (title || title === 0 ? "<tr><th colspan='2'>" + title + "</th></tr>" : "");
+        }
+
+        name = nameFormat(d[i].name);
+        value = valueFormat(d[i].value, d[i].ratio, d[i].id, d[i].index);
+        bgcolor = $$.levelColor ? $$.levelColor(d[i].value) : color(d[i].id);
+
+        text += "<tr class='" + CLASS.tooltipName + "-" + d[i].id + "'>";
+        text += "<td class='name'><span style='background-color:" + bgcolor + "'></span>" + "Cluster" + "</td>";
+        text += "<td class='value'>" + window.CURRENT_TSNE_DATA_LOOKUP[d[0].index].clusterID + "</td>";
+        text += "</tr>";
+    }
+
+    return text + "</table>";
+}
+
+/**
+ * Renders map with word coordinates in low-dim. space.
+ * Note: Currently assuming 2D target. Not yet generalized to arbitrary number of dimensions (desirable?).
+ * @param tsneData
+ */
+function renderMap(tsneData)
+{
+    // Make t-SNE coordinates globally available (bad practice, but necessary with c3.js.
+    window.CURRENT_TSNE_DATA_LOOKUP = [];
+
+    // Define color spectrum for point-cluster association.
+    var colors = ["#1b70fc", "#faff16", "#d50527", "#158940", "#f898fd", "#24c9d7", "#cb9b64", "#866888", "#22e67a", "#e509ae", "#9dabfa", "#437e8a", "#b21bff", "#ff7b91", "#94aa05", "#ac5906", "#82a68d", "#fe6616", "#7a7352", "#f9bc0f", "#b65d66", "#07a2e6", "#c091ae", "#8a91a7", "#88fc07", "#ea42fe", "#9e8010", "#10b437", "#c281fe", "#f92b75", "#07c99d", "#a946aa", "#bfd544", "#16977e", "#ff6ac8", "#a88178", "#5776a9", "#678007", "#fa9316", "#85c070", "#6aa2a9", "#989e5d", "#fe9169", "#cd714a", "#6ed014", "#c5639c", "#c23271", "#698ffc", "#678275", "#c5a121", "#a978ba", "#ee534e", "#d24506", "#59c3fa", "#ca7b0a", "#6f7385", "#9a634a", "#48aa6f", "#ad9ad0", "#d7908c", "#6a8a53", "#8c46fc", "#8f5ab8", "#fd1105", "#7ea7cf", "#d77cd1", "#a9804b", "#0688b4", "#6a9f3e", "#ee8fba", "#a67389", "#9e8cfe", "#bd443c", "#6d63ff", "#d110d5", "#798cc3", "#df5f83", "#b1b853", "#bb59d8", "#1d960c", "#867ba8", "#18acc9", "#25b3a7", "#f3db1d", "#938c6d", "#936a24", "#a964fb", "#92e460", "#a05787", "#9c87a0", "#20c773", "#8b696d", "#78762d", "#e154c6", "#40835f", "#d73656", "#1afd5c", "#c4f546", "#3d88d8", "#bd3896", "#1397a3", "#f940a5", "#66aeff", "#d097e7", "#fe6ef9", "#d86507", "#8b900a", "#d47270", "#e8ac48", "#cf7c97", "#cebb11", "#718a90", "#e78139", "#ff7463", "#bea1fd"];
+
+    // Gather data.
+    let clusterIDs = new Set();
+    let word_coordinates_x = ["x"];
+    let word_coordinates_y = ["y"];
+    for (word in tsneData) {
+        // New cluster? Create new list.
+        if (!(tsneData[word].cluster_id) in clusterIDs) {
+            clusterIDs.add(tsneData[word].cluster_id);
+        }
+
+        word_coordinates_x.push(tsneData[word].values[0]);
+        word_coordinates_y.push(tsneData[word].values[1]);
+        // Store index word for later access by tooltip.
+        window.CURRENT_TSNE_DATA_LOOKUP.push({word: word, clusterID: tsneData[word].cluster_id});
+    }
+
+    $(document).ready(function() {
+        var chart = c3.generate({
+            bindto: "#runopt_wvScatterplot",
+            data: {
+                xs: {
+                    y: "x"
+                },
+                // iris data from R
+                columns: [
+                    word_coordinates_x,
+                    word_coordinates_y
+                ],
+                type: 'scatter',
+                // https://github.com/c3js/c3/issues/547
+                xSort: false
+            },
+            axis: {
+                x: {
+                    show: false,
+                    tick: {
+                        fit: false
+                    }
+                },
+                y: {
+                    show: false,
+                }
+            },
+            size: {
+                width: ($('#runopt_wvScatterplot').width()) * 1,
+                height: ($('#runopt_wvScatterplot').height()) * 1
+            },
+            legend: {
+                show: false
+            },
+            tooltip: {
+                show: true,
+                contents: tooltip_contents
+            },
+            zoom: {
+                enabled: true
+            },
+            color: function(color, d){ return "#ccc"; },
+            onrendered: function () {
+                d3.selectAll("#runopt_wvScatterplot circle").style("fill",
+                    function(d) {
+                        let currClusterID = window.CURRENT_TSNE_DATA_LOOKUP[d.index].clusterID;
+                        return d3.rgb(colors[currClusterID % colors.length]);
+                    }
+                );
+            }
+        });
     });
 }
 
@@ -715,6 +830,8 @@ function loadRun()
                     renderHyperparameterPanel(metadataResponse, runName, currentTSNESequenceNumber, currentTSNEIndex);
                     // Render quality metrics pane.
                     renderQualityMetricsPane(metadataResponse, runName, currentTSNESequenceNumber, currentTSNEIndex);
+                    // Render map for word coordinates.
+                    renderMap(tsne_results);
                 }
             });
         }
@@ -740,9 +857,6 @@ function initDashboard()
 
             // Initialize quality evaluation box.
             initQualityEvaluationBox();
-
-            // Initialize map.
-            initMap();
         }
     });
 }
