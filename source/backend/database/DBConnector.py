@@ -30,10 +30,10 @@ class DBConnector:
         try:
             # Init DB connection.
             self.connection = psycopg2.connect(host=host, database=database, port=port, user=user, password=password)
-        except:
+        except psycopg2.Error:
             self.logger.critical("Connection to database failed. Check parameters.")
 
-    def construct_database(self, path="ddl.sql", reconstruct=False):
+    def construct_database(self, path="backend/database/ddl", reconstruct=False):
         """
         Execute DDL. Note: Does not reconstruct database by default if it already exists.
         :param path: Path to DDL file.
@@ -55,7 +55,7 @@ class DBConnector:
                 # Drop schema if it exists.
                 cursor.execute("drop schema if exists tapas cascade")
                 # Construct database.
-                cursor.execute(open("backend/database/ddl.sql", "r").read())
+                cursor.execute(open(path, "r").read())
                 self.connection.commit()
 
         except psycopg2.Error:

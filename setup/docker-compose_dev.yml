@@ -27,7 +27,7 @@ services:
       # Provide the password via an environment variable. If the variable is unset or empty, use a default password
       - POSTGRES_PASSWORD=password
       # Create database.
-      - POSTGRES_DB=topac
+      - POSTGRES_DB=tapas
       # If on a non-Linux OS, make sure you share the drive used here. Go to Docker's settings -> Shared Drives
     volumes:
       # Persist the data between container invocations

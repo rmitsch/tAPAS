@@ -307,5 +307,18 @@ def fetch_model_metadata_in_runs_in_dataset():
     return jsonify(app.config["DB_CONNECTOR"].read_metadata_for_run(run_title=request.args["run_title"]))
 
 
+@app.route('/proceed_with_optimization', methods=["POST"])
+def proceed_with_optimization():
+    """
+    Proceeds with optimization of current t-SNE model.
+    :return: Result of latest t-SNE model.
+    """
+
+    print(request.get_json())
+
+    return "200"
+
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=7182, debug=True)

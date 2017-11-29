@@ -563,8 +563,9 @@ function tooltip_contents(d, defaultTitleFormat, defaultValueFormat, color)
  * Renders map with word coordinates in low-dim. space.
  * Note: Currently assuming 2D target. Not yet generalized to arbitrary number of dimensions (desirable?).
  * @param tsneData
+ * @param numWordsToShow
  */
-function renderMap(tsneData)
+function renderMap(tsneData, numWordsToShow)
 {
     // Make t-SNE coordinates globally available (bad practice, but necessary with c3.js.
     window.CURRENT_TSNE_DATA_LOOKUP = [];
@@ -576,7 +577,13 @@ function renderMap(tsneData)
     let clusterIDs = new Set();
     let word_coordinates_x = ["x"];
     let word_coordinates_y = ["y"];
+    let wordCount = 0;
+
     for (word in tsneData) {
+        // Cancel loop if max. number of words is reached.
+        if (numWordsToShow != null && wordCount++ >= numWordsToShow)
+            break;
+
         // New cluster? Create new list.
         if (!(tsneData[word].cluster_id) in clusterIDs) {
             clusterIDs.add(tsneData[word].cluster_id);
@@ -643,6 +650,34 @@ function renderMap(tsneData)
 }
 
 /**
+ * Gathers necessary UI data and instructs server to proceed with optimization.
+ */
+function proceedWithOptimization()
+{
+    // Gather values from UI.
+    let parameters = {};
+    parameters.modelQuality = $("#runopt_qualitySlider").data("ionRangeSlider")["result"]["from"];
+    parameters.showNextModelIn = $("#runopt_qualityEvaluationBox_stepper").val();
+    parameters.runName = window.RUN_METADATA.title;
+
+    // Instruct server with next optimization step.
+    $.ajax({
+        type: "POST",
+        url: "/proceed_with_optimization",
+        data: JSON.stringify(parameters),
+        contentType: "application/json",
+        success: function(html_data) {
+            // 1. Parse new t-SNE model.
+            // 2. Update map.
+            // 3. Fetch new run metadata.
+            // 4. Update hyperarameter panel.
+            // 5. Update quality metrics panel.
+        }
+    });
+
+}
+
+/**
  * Initializes query field.
  */
 function initQueryField()
@@ -668,16 +703,16 @@ function initQualityEvaluationBox()
     $("#runopt_showNumberOfWordsSlider").ionRangeSlider({
         hide_min_max: true,
         keyboard: true,
-        min: 0,
+        min: 1,
         max: 10000,
         from: 1000,
         type: 'single',
         step: 10,
         grid: true,
         grid_num: 3,
-        // Define hooks to steppers.
-        onChange: function (data) {
-            // Fetch corresponding stepper element.
+        // Render map with specified number of words.
+        onFinish: function (data) {
+            renderMap(window.TSNE_RESULTS, data.from);
         }
     });
 
@@ -794,6 +829,8 @@ function loadRun()
         },
         success: function(response) {
             var metadataResponse = response;
+            // Store current run metadata.
+            window.RUN_METADATA = metadataResponse[0];
 
             // Find highest sequence t-SNE model index for current run.
             var currentTSNESequenceNumber = -1;
@@ -822,7 +859,7 @@ function loadRun()
                     run_title: runName
                 },
                 success: function(response) {
-                    tsne_results = JSON.parse(response);
+                    window.TSNE_RESULTS = JSON.parse(response);
 
                     // Show dashboard.
                     $("#dashboard").css("display", "block");
@@ -831,7 +868,7 @@ function loadRun()
                     // Render quality metrics pane.
                     renderQualityMetricsPane(metadataResponse, runName, currentTSNESequenceNumber, currentTSNEIndex);
                     // Render map for word coordinates.
-                    renderMap(tsne_results);
+                    renderMap(window.TSNE_RESULTS, 1000);
                 }
             });
         }
