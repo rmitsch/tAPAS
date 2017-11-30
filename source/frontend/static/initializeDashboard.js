@@ -596,7 +596,7 @@ function renderMap(tsneData, numWordsToShow)
     }
 
     $(document).ready(function() {
-        var chart = c3.generate({
+        window.MAP_CHART = c3.generate({
             bindto: "#runopt_wvScatterplot",
             data: {
                 xs: {
@@ -610,6 +610,16 @@ function renderMap(tsneData, numWordsToShow)
                 type: 'scatter',
                 // https://github.com/c3js/c3/issues/547
                 xSort: false
+            },
+            point: {
+                r: function (d) {
+                    if (window.SEARCH_TERM == null)
+                        return 2.5;
+                    else if(window.SEARCH_TERM != window.CURRENT_TSNE_DATA_LOOKUP[d.index].word)
+                        return 1.75;
+                    else
+                        return 20;
+                }
             },
             axis: {
                 x: {
@@ -634,7 +644,12 @@ function renderMap(tsneData, numWordsToShow)
                 contents: tooltip_contents
             },
             zoom: {
-                enabled: true
+                enabled: true,
+                rescale: true,
+                onzoom: function (domain) {
+                    // do something with domain, which is the domain after zoomed
+                    console.log(domain);
+                }
             },
             color: function(color, d){ return "#ccc"; },
             onrendered: function () {
@@ -683,6 +698,31 @@ function proceedWithOptimization()
 function initQueryField()
 {
 
+    $("#queryFieldInput").on('change', function() {
+        window.SEARCH_TERM = $("#queryFieldInput").val();
+
+        // 1. Reset all points' radius.
+        d3.selectAll("#runopt_wvScatterplot circle").attr("r", 1.75);
+
+        for (let i = 0; i < window.CURRENT_TSNE_DATA_LOOKUP.length; i++) {
+            if (window.SEARCH_TERM == window.CURRENT_TSNE_DATA_LOOKUP[i].word) {
+                // 2. Increase radius of looked for point.
+                console.log(d3.select("#runopt_wvScatterplot .c3-circle-" + i));
+                d3.select("#runopt_wvScatterplot .c3-circle-" + i).attr("r", 20);
+                // 3. Reset zoom (Alt. to jumping to target in scatterplot).
+                window.MAP_CHART.unzoom();
+
+//                d3.select("#runopt_wvScatterplot svg")
+//                    .attr("transform", "translate(240,240)");
+
+                return;
+            }
+        }
+
+        // Reset to normal size if no term was found.
+        d3.selectAll("#runopt_wvScatterplot circle").attr("r", 2.5);
+        window_SEARCH_TERM = null;
+    });
 }
 
 /**
@@ -746,58 +786,6 @@ function initQualityEvaluationBox()
             width: "150px",
             height: "25px",
         }, 100, function() {});
-    });
-}
-
-/**
- * Initialize scatterplot for display of low-dim. word vectors.
- */
-function initMap()
-{
-    $(document).ready(function() {
-        var chart = c3.generate({
-            bindto: "#runopt_wvScatterplot",
-            data: {
-                xs: {
-                    setosa: 'setosa_x',
-                    versicolor: 'versicolor_x',
-                },
-                // iris data from R
-                columns: [
-                    ["setosa_x", 3.5, 3.0, 3.2, 3.1, 3.6, 3.9, 3.4, 3.4, 2.9, 3.1, 3.7, 3.4, 3.0, 3.0, 4.0, 4.4, 3.9, 3.5, 3.8, 3.8, 3.4, 3.7, 3.6, 3.3, 3.4, 3.0, 3.4, 3.5, 3.4, 3.2, 3.1, 3.4, 4.1, 4.2, 3.1, 3.2, 3.5, 3.6, 3.0, 3.4, 3.5, 2.3, 3.2, 3.5, 3.8, 3.0, 3.8, 3.2, 3.7, 3.3],
-                    ["versicolor_x", 3.2, 3.2, 3.1, 2.3, 2.8, 2.8, 3.3, 2.4, 2.9, 2.7, 2.0, 3.0, 2.2, 2.9, 2.9, 3.1, 3.0, 2.7, 2.2, 2.5, 3.2, 2.8, 2.5, 2.8, 2.9, 3.0, 2.8, 3.0, 2.9, 2.6, 2.4, 2.4, 2.7, 2.7, 3.0, 3.4, 3.1, 2.3, 3.0, 2.5, 2.6, 3.0, 2.6, 2.3, 2.7, 3.0, 2.9, 2.9, 2.5, 2.8],
-                    ["setosa", 0.2, 0.2, 0.2, 0.2, 0.2, 0.4, 0.3, 0.2, 0.2, 0.1, 0.2, 0.2, 0.1, 0.1, 0.2, 0.4, 0.4, 0.3, 0.3, 0.3, 0.2, 0.4, 0.2, 0.5, 0.2, 0.2, 0.4, 0.2, 0.2, 0.2, 0.2, 0.4, 0.1, 0.2, 0.2, 0.2, 0.2, 0.1, 0.2, 0.2, 0.3, 0.3, 0.2, 0.6, 0.4, 0.3, 0.2, 0.2, 0.2, 0.2],
-                    ["versicolor", 1.4, 1.5, 1.5, 1.3, 1.5, 1.3, 1.6, 1.0, 1.3, 1.4, 1.0, 1.5, 1.0, 1.4, 1.3, 1.4, 1.5, 1.0, 1.5, 1.1, 1.8, 1.3, 1.5, 1.2, 1.3, 1.4, 1.4, 1.7, 1.5, 1.0, 1.1, 1.0, 1.2, 1.6, 1.5, 1.6, 1.5, 1.3, 1.3, 1.3, 1.2, 1.4, 1.2, 1.0, 1.3, 1.2, 1.3, 1.3, 1.1, 1.3],
-                ],
-                type: 'scatter'
-            },
-            axis: {
-                x: {
-                    show: false,
-                    label: 'Sepal.Width',
-                    tick: {
-                        fit: false
-                    }
-                },
-                y: {
-                    show: false,
-                    label: 'Petal.Width'
-                }
-            },
-            size: {
-                width: ($('#runopt_wvScatterplot').width()) * 1,
-                height: ($('#runopt_wvScatterplot').height()) * 1
-            },
-            legend: {
-                show: false
-            },
-            tooltip: {
-                show: true
-            },
-            zoom: {
-                enabled: true
-            }
-        });
     });
 }
 
