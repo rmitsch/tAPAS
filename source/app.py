@@ -5,18 +5,21 @@
 from flask import Flask
 from flask import render_template
 from flask import request
-import backend.utils.Utils as Utils
-from backend.algorithm.WordVector import WordVector
-from backend.algorithm.QVEC import QVECConfiguration
-from backend.algorithm.TSNEModel import TSNEModel
-import werkzeug
 from flask import jsonify
-from backend.algorithm.WordEmbeddingClusterer import WordEmbeddingClusterer
 import coranking
 from coranking.metrics import trustworthiness, continuity
 import numpy
 import sklearn.neighbors
 import json
+import werkzeug
+
+import backend.utils.Utils as Utils
+from backend.algorithm.WordVector import WordVector
+from backend.algorithm.QVEC import QVECConfiguration
+from backend.algorithm.TSNEModel import TSNEModel
+from backend.algorithm.WordEmbeddingClusterer import WordEmbeddingClusterer
+from backend.algorithm.BayesianTSNEOptimizer import BayesianTSNEOptimizer
+
 
 
 def init_flask_app():
@@ -313,8 +316,13 @@ def proceed_with_optimization():
     Proceeds with optimization of current t-SNE model.
     :return: Result of latest t-SNE model.
     """
-
+    run_name = request.get_json()["runName"]
     print(request.get_json())
+
+    optimizer = BayesianTSNEOptimizer(
+        db_connector=app.config["DB_CONNECTOR"],
+        run_name=run_name
+    )
 
     return "200"
 

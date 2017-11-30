@@ -535,6 +535,7 @@ class DBConnector:
     def set_tsne_quality_scores(self, tsne_id, qvec_score, trustworthiness, continuity, generalization_accuracy):
         """
         Writes calculated quality scores for t-SNE model to DB.
+        Calculates user quality score (can be overriden by user) as weighted average of all individual quality scores.
         :param tsne_id:
         :param qvec_score:
         :param trustworthiness:
@@ -543,6 +544,10 @@ class DBConnector:
         :return:
         """
         cursor = self.connection.cursor()
+
+
+TODO HERE:  Set %s values accordingly. Test in test.py. Then continue with BO.
+            tAPAS should be done until 2017-12-03!
 
         # Fetch dataset's QVEC score to calculate relative word embedding information ratio.
         cursor.execute("""
@@ -558,8 +563,24 @@ class DBConnector:
                 inner join tapas.tsne_models tm on
                     tm.runs_id = r.id and
                     tm.id = %s
+            ),
+
+            -- Fetch corresponding run.
+            run_measure_weights as (
+                select
+                    r.measure_weight_generalization_accuracy,
+                    r.measure_weight_continuity,
+                    r.measure_weight_trustworthiness,
+                    r.measure_weight_we_information_ratio
+                from
+                    tapas.tsne_models t
+                inner join tapas.runs r on
+                    r.id = t.runs_id
+                where
+                t.id = %s
             )
 
+            -- Update quality scores. Calculate intermediate user quality score as weighted average.
             update tapas.tsne_models
             set
                 measure_trustworthiness = %s,
@@ -570,7 +591,49 @@ class DBConnector:
                     qvec_score
                   from
                     dataset_qvec_score
-                )::float
+                )::float,
+                measure_user_quality = (
+                    (
+                        least(%s, 1) * (
+                            select
+                                measure_weight_trustworthiness
+                            from
+                                run_measure_weights
+                        ) +
+                        least(%s, 1) * (
+                            select
+                                measure_weight_continuity
+                            from
+                                run_measure_weights
+                        ) +
+                        least(%s, 1) * (
+                            select
+                                measure_weight_generalization_accuracy
+                            from
+                                run_measure_weights
+                        ) +
+                        -- QVEC score: Calculate quality relative to original WE; weight it.
+                        %s / (
+                            select
+                                qvec_score
+                            from
+                                dataset_qvec_score
+                            )::float * (
+                            select
+                                measure_weight_we_information_ratio
+                            from
+                                run_measure_weights
+                        )
+                    )::float / (
+                        select
+                            measure_weight_trustworthiness +
+                            measure_weight_continuity +
+                            measure_weight_generalization_accuracy +
+                            measure_weight_we_information_ratio
+                        from
+                            run_measure_weights
+                    )
+                )
             where
                 id = %s
             ;
@@ -654,7 +717,15 @@ class DBConnector:
                 tm.measure_continuity,
                 tm.measure_generalization_accuracy,
                 tm.measure_word_embedding_information_ratio,
-                tm.measure_user_quality
+                tm.measure_user_quality,
+                r.is_early_exaggeration_fixed,
+                r.is_init_method_fixed,
+                r.is_learning_rate_fixed,
+                r.is_metric_fixed,
+                r.is_min_grad_norm_fixed,
+                r.is_n_components_fixed,
+                r.is_perplexity_fixed,
+                r.is_random_state_fixed
               from
                 tapas.datasets d
               inner join tapas.runs r on
