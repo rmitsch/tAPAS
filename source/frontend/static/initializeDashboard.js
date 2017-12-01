@@ -672,7 +672,7 @@ function proceedWithOptimization()
     // Gather values from UI.
     let parameters = {};
     parameters.modelQuality = $("#runopt_qualitySlider").data("ionRangeSlider")["result"]["from"];
-    parameters.showNextModelIn = $("#runopt_qualityEvaluationBox_stepper").val();
+    parameters.numIterations = $("#runopt_qualityEvaluationBox_stepper").val();
     parameters.runName = window.RUN_METADATA.title;
 
     // Instruct server with next optimization step.
@@ -711,10 +711,10 @@ function initQueryField()
                 d3.select("#runopt_wvScatterplot .c3-circle-" + i).attr("r", 20);
                 // 3. Reset zoom (Alt. to jumping to target in scatterplot).
                 window.MAP_CHART.unzoom();
-
 //                d3.select("#runopt_wvScatterplot svg")
 //                    .attr("transform", "translate(240,240)");
 
+                // Interrupt further search on success.
                 return;
             }
         }
@@ -764,7 +764,7 @@ function initQualityEvaluationBox()
         max: 1,
         from: calculatedQuality,
         type: 'single',
-        step: 0.1,
+        step: 0.01,
         grid: true,
         grid_num: 3,
         // Define hooks to steppers.
@@ -783,7 +783,7 @@ function initQualityEvaluationBox()
     // Initialize leave listener.
     $("#qualityEvaluationBox").mouseleave(function() {
         $("#qualityEvaluationBox").animate({
-            width: "150px",
+            width: "200px",
             height: "25px",
         }, 100, function() {});
     });
@@ -832,13 +832,13 @@ function loadRun()
                 }
             }
             // Set current t-SNE-model's sequence number in run.
-            $("#qualityEvaluationBox_runIteration").html("#" + currentTSNESequenceNumber + "@");
+            $("#qualityEvaluationBox_runIteration").html(window.RUN_METADATA.title + "#" + currentTSNESequenceNumber + "@");
             // Update slider for number of words.
             $("#runopt_showNumberOfWordsSlider").data("ionRangeSlider").update({
                 max: metadataResponse[currentTSNEIndex].num_words
             });
 
-            // 2. Load t-SNE results for latest model in run.
+            // 2. Load results for latest t-SNE model in run.
             $.ajax({
                 type: 'GET',
                 url: '/fetch_latest_tsne_results_for_run',
@@ -848,6 +848,10 @@ function loadRun()
                 },
                 success: function(response) {
                     window.TSNE_RESULTS = JSON.parse(response);
+
+                    $("#runopt_qualitySlider").data("ionRangeSlider").update({
+                        from: metadataResponse[currentTSNEIndex].measure_user_quality
+                    });
 
                     // Show dashboard.
                     $("#dashboard").css("display", "block");

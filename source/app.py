@@ -114,7 +114,7 @@ def upload(path):
         dataset_id=dataset_id)
 
     # Insert vectors in this chunk into DB.
-    # app.config["DB_CONNECTOR"].import_word_vectors(tuples_to_insert)
+    app.config["DB_CONNECTOR"].import_word_vectors(tuples_to_insert)
 
     return "200"
 
@@ -185,7 +185,7 @@ def cluster_wordembedding():
     # Prepare and cluster data.
     we_clusterer = WordEmbeddingClusterer(
         WordEmbeddingClusterer.prepare_word_embedding_dataset(
-            WordEmbeddingClusterer(app.config["DATA"]["word_embeddings"][dataset_name])
+            app.config["DATA"]["word_embeddings"][dataset_name]
         )
     )
     app.config["DATA"]["word_embeddings"][dataset_name]["cluster_id"] = we_clusterer.run()
@@ -316,13 +316,12 @@ def proceed_with_optimization():
     Proceeds with optimization of current t-SNE model.
     :return: Result of latest t-SNE model.
     """
-    run_name = request.get_json()["runName"]
-    print(request.get_json())
 
     optimizer = BayesianTSNEOptimizer(
         db_connector=app.config["DB_CONNECTOR"],
-        run_name=run_name
+        run_name=request.get_json()["runName"]
     )
+    optimizer.run(num_iterations=request.get_json()["numIterations"])
 
     return "200"
 

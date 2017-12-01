@@ -60,5 +60,5 @@ db_connector.read_metadata_for_run(run_title="completerun")
 #     print("Warning")
 
 
-blab = BayesianTSNEOptimizer(db_connector=db_connector, run_name="completerun")
-blab.run(num_iterations=5)
+blab = BayesianTSNEOptimizer(db_connector=db_connector, run_name="firstrun")
+blab.run(num_iterations=5, kappa=4)

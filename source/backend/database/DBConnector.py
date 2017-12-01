@@ -545,10 +545,6 @@ class DBConnector:
         """
         cursor = self.connection.cursor()
 
-
-TODO HERE:  Set %s values accordingly. Test in test.py. Then continue with BO.
-            tAPAS should be done until 2017-12-03!
-
         # Fetch dataset's QVEC score to calculate relative word embedding information ratio.
         cursor.execute("""
             with
@@ -577,7 +573,7 @@ TODO HERE:  Set %s values accordingly. Test in test.py. Then continue with BO.
                 inner join tapas.runs r on
                     r.id = t.runs_id
                 where
-                t.id = %s
+                    t.id = %s
             )
 
             -- Update quality scores. Calculate intermediate user quality score as weighted average.
@@ -613,12 +609,12 @@ TODO HERE:  Set %s values accordingly. Test in test.py. Then continue with BO.
                                 run_measure_weights
                         ) +
                         -- QVEC score: Calculate quality relative to original WE; weight it.
-                        %s / (
+                        least(%s / (
                             select
                                 qvec_score
                             from
                                 dataset_qvec_score
-                            )::float * (
+                        )::float, 1) * (
                             select
                                 measure_weight_we_information_ratio
                             from
@@ -639,6 +635,11 @@ TODO HERE:  Set %s values accordingly. Test in test.py. Then continue with BO.
             ;
         """, (
             tsne_id,
+            tsne_id,
+            trustworthiness,
+            continuity,
+            generalization_accuracy,
+            qvec_score,
             trustworthiness,
             continuity,
             generalization_accuracy,
@@ -721,11 +722,17 @@ TODO HERE:  Set %s values accordingly. Test in test.py. Then continue with BO.
                 r.is_early_exaggeration_fixed,
                 r.is_init_method_fixed,
                 r.is_learning_rate_fixed,
+                r.is_n_iter_fixed,
                 r.is_metric_fixed,
                 r.is_min_grad_norm_fixed,
                 r.is_n_components_fixed,
                 r.is_perplexity_fixed,
-                r.is_random_state_fixed
+                r.is_random_state_fixed,
+                r.is_angle_fixed,
+                r.measure_weight_trustworthiness,
+                r.measure_weight_generalization_accuracy,
+                r.measure_weight_continuity,
+                r.measure_weight_we_information_ratio
               from
                 tapas.datasets d
               inner join tapas.runs r on

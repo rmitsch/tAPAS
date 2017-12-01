@@ -7,6 +7,15 @@ class TSNEModel:
     Representation of t-SNE model including configuration and actual data.
     """
 
+    # Define possible values for categorical variables.
+    CATEGORICAL_VALUES = {
+        'metrics': ["braycurtis", "canberra", "chebyshev", "cityblock", "correlation", "cosine",
+                    "dice", "euclidean", "hamming", "jaccard", "kulsinski", "mahalanobis",
+                    "matching", "minkowski", "rogerstanimoto", "russellrao", "seuclidean",
+                    "sokalmichener", "sokalsneath", "sqeuclidean", "yule"],
+        'init_methods': ["random", "PCA"]
+    }
+
     def __init__(self,
                  num_words,
                  num_dimensions,
