@@ -1,5 +1,10 @@
 from MulticoreTSNE import MulticoreTSNE as MulticoreTSNE
 import numpy
+from .WordEmbeddingClusterer import WordEmbeddingClusterer
+from backend.algorithm.QVEC import QVECConfiguration
+import coranking
+from coranking.metrics import trustworthiness, continuity
+import sklearn.neighbors
 
 
 class TSNEModel:
@@ -13,7 +18,7 @@ class TSNEModel:
                     "dice", "euclidean", "hamming", "jaccard", "kulsinski", "mahalanobis",
                     "matching", "minkowski", "rogerstanimoto", "russellrao", "seuclidean",
                     "sokalmichener", "sokalsneath", "sqeuclidean", "yule"],
-        'init_methods': ["random", "PCA"]
+        'init_method': ["random", "PCA"]
     }
 
     def __init__(self,
@@ -27,11 +32,7 @@ class TSNEModel:
                  random_state,
                  angle,
                  metric,
-                 init_method,
-                 measure_weight_trustworthiness,
-                 measure_weight_continuity,
-                 measure_weight_generalization,
-                 measure_weight_relative_weq):
+                 init_method):
         """
         :param num_words:
         :param num_dimensions:
@@ -44,10 +45,6 @@ class TSNEModel:
         :param angle:
         :param metric:
         :param init_method:
-        :param measure_weight_trustworthiness:
-        :param measure_weight_continuity:
-        :param measure_weight_generalization:
-        :param measure_weight_relative_weq:
         """
 
         self.num_words = num_words
@@ -61,11 +58,9 @@ class TSNEModel:
         self.angle = angle
         self.metric = metric
         self.init_method = init_method
-        self.measure_weight_trustworthiness = measure_weight_trustworthiness
-        self.measure_weight_continuity = measure_weight_continuity
-        self.measure_weight_generalization = measure_weight_generalization
-        self.measure_weight_relative_weq = measure_weight_relative_weq
-        self.tsne_model = None
+
+        self.tsne_results = None
+        self.word_embedding = None
 
     def run(self, word_embedding):
         """
@@ -73,6 +68,7 @@ class TSNEModel:
         :param word_embedding: Word embedding; expected to be only as long as self.num_words.
         :return:
         """
+        self.word_embedding = word_embedding
         word_vector_data = numpy.stack(word_embedding['values'].values, axis=0)
 
         # Consider num_words!
@@ -89,8 +85,10 @@ class TSNEModel:
             init=self.init_method,
             n_jobs=2)
 
-        # Train TSNE on gensim's model, return results.
-        return tsne.fit_transform(word_vector_data)
+        # Train TSNE on gensim's model.
+        self.tsne_results = tsne.fit_transform(word_vector_data)
+
+        return self.tsne_results
 
     @staticmethod
     def generate_instance_from_dict(param_dict):
@@ -111,9 +109,104 @@ class TSNEModel:
             random_state=param_dict["randomState"],
             angle=param_dict["angle"],
             metric=param_dict["metric"],
-            init_method=param_dict["initMethod"],
-            measure_weight_trustworthiness=param_dict["measureWeight_trustworthiness"],
-            measure_weight_continuity=param_dict["measureWeight_continuity"],
-            measure_weight_generalization=param_dict["measureWeight_generalization"],
-            measure_weight_relative_weq=param_dict["measureWeight_relativeWEQ"]
+            init_method=param_dict["initMethod"]
         )
+
+
+    @staticmethod
+    def generate_instance_from_dict_with_db_names(param_dict):
+        """
+        Generates TSNEModel from dictionary.
+        :param param_dict:
+        :return: TSNEModel instance.
+        """
+
+        return TSNEModel(
+            num_words=param_dict["num_words"],
+            num_dimensions=param_dict["n_components"],
+            perplexity=param_dict["perplexity"],
+            early_exaggeration=param_dict["early_exaggeration"],
+            learning_rate=param_dict["learning_rate"],
+            num_iterations=param_dict["n_iter"],
+            min_grad_norm=param_dict["min_grad_norm"],
+            random_state=param_dict["random_state"],
+            angle=param_dict["angle"],
+            metric=param_dict["metric"],
+            init_method=param_dict["init_method"]
+        )
+
+    @staticmethod
+    def calculate_quality_measures(word_embedding, tsne_results):
+        """
+        Calculates quality measures for specified t-SNE result data.
+        :param word_embedding:
+        :param tsne_results:
+        :return:
+        """
+
+        # 1. Calculate QVEC score.
+        qvec_score = QVECConfiguration().run(word_embedding=tsne_results)
+
+        # 2. Calculate coranking matrix.
+        word_embedding_vector_array = numpy.stack(word_embedding["values"].values, axis=0)
+        tsne_model_vector_array = numpy.stack(tsne_results["values"].values, axis=0)
+        coranking_matrix = coranking.coranking_matrix(word_embedding_vector_array, tsne_model_vector_array)
+
+        # 3. Calculate trustworthiness.
+        trust = trustworthiness(coranking_matrix.astype(numpy.float16), min_k=99, max_k=100)
+
+        # 4. Calculate continuity.
+        cont = continuity(coranking_matrix.astype(numpy.float16), min_k=99, max_k=100)
+
+        # 5. Calculate generalization accuracy.
+        # Use nearest neighbour search with ball tree to find nearest neighbour in t-SNE vector space.
+        neighbours = sklearn.neighbors.NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(
+            tsne_model_vector_array)
+        distances, indices = neighbours.kneighbors(tsne_model_vector_array)
+        # Classify points using the cluster ID's of their nearest neighbours, compare with their actual cluster ID to
+        # calculate generalization accuracy.
+        predicted_cluster_values = word_embedding.iloc[indices[:, 1]]["cluster_id"].values
+        actual_cluster_values = word_embedding["cluster_id"].values
+        generalization_accuracy = \
+            numpy.sum(predicted_cluster_values == actual_cluster_values) / len(actual_cluster_values)
+
+        return {
+            "qvec": qvec_score,
+            "trustworthiness": float(trust[0]),
+            "continuity": float(cont[0]),
+            "generalization_accuracy": generalization_accuracy
+        }
+
+    def persist(self, db_connector, run_name):
+        """
+        Stores t-SNE model in DB.
+        :param db_connector:
+        :param run_name:
+        :return: DB ID of t-SNE model.
+        """
+
+        # Copy fields and assign new names to avoid column name conflict. Fix when time available.
+        parameters = vars(self)
+        parameters["numDimensions"] = self.num_dimensions,
+        parameters["earlyExaggeration"] = self.early_exaggeration,
+        parameters["learningRate"] = self.learning_rate,
+        parameters["numIterations"] = self.num_iterations,
+        parameters["minGradNorm"] = self.min_grad_norm
+        parameters["initMethod"] = self.init_method
+        parameters["randomState"] = self.random_state
+        parameters["runName"] = run_name
+
+        # Insert metadata for initial t-SNE model.
+        tsne_model_id = db_connector.insert_tsne_model(tsne_configuration=parameters)
+
+        # If t-SNE model doesn't exist yet: Generate, persist.
+        if tsne_model_id != -1:
+            # Calculate and persist initial, clustered t-SNE model.
+            db_connector.insert_tsne_coordinates(
+                tsne_model_id=tsne_model_id,
+                word_ids=self.word_embedding['id'].values,
+                cluster_ids=WordEmbeddingClusterer(self.tsne_results).run(),
+                tsne_result=self.tsne_results
+            )
+
+        return tsne_model_id

@@ -19,8 +19,8 @@ db_connector = Utils.connect_to_database(False)
 
 db_connector.read_metadata_for_run(run_title="completerun")
 
-# word_embedding = db_connector.read_word_vectors_for_dataset("wiki_small.en.vec")
-# word_embedding_small = word_embedding.head(n=1000)
+word_embedding = db_connector.read_word_vectors_for_dataset("wiki_small.en.vec")
+word_embedding_small = word_embedding.head(n=1000)
 #
 # stacked_wordvectors = numpy.stack(word_embedding['values'].values, axis=0)
 
@@ -60,5 +60,5 @@ db_connector.read_metadata_for_run(run_title="completerun")
 #     print("Warning")
 
 
-blab = BayesianTSNEOptimizer(db_connector=db_connector, run_name="firstrun")
+blab = BayesianTSNEOptimizer(db_connector=db_connector, run_name="run10", word_embedding=word_embedding_small)
 blab.run(num_iterations=5, kappa=4)

@@ -388,11 +388,10 @@ class DBConnector:
 
         self.connection.commit()
 
-    def insert_tsne_model(self, tsne_configuration, sequence_number_in_run):
+    def insert_tsne_model(self, tsne_configuration):
         """
         Inserts metadata of new t-SNE model into database.
         :param tsne_configuration:
-        :param sequence_number_in_run: Model's sequence number in particular run.
         :return:
         """
         cursor = self.connection.cursor()
@@ -408,6 +407,16 @@ class DBConnector:
                            "    r.title = %s ",
                            (tsne_configuration["runName"],))
             run_id = cursor.fetchone()[0]
+
+            cursor.execute("""
+                select
+                    coalesce(max(t.runs_sequence_number), 1)
+                from
+                    tapas.tsne_models t
+                where
+                    t.runs_id = %s;
+            """, (run_id,))
+            sequence_number_in_run = cursor.fetchone()[0]
 
             cursor.execute("""
                 insert into tapas.tsne_models (
@@ -541,7 +550,7 @@ class DBConnector:
         :param trustworthiness:
         :param continuity:
         :param generalization_accuracy:
-        :return:
+        :return: User quality score calculated as weighted average.
         """
         cursor = self.connection.cursor()
 
@@ -645,8 +654,19 @@ class DBConnector:
             generalization_accuracy,
             qvec_score,
             tsne_id))
-
         self.connection.commit()
+
+        # Fetch and return user quality score.
+        cursor.execute("""
+            select
+              t.measure_user_quality
+            from
+              tapas.tsne_models t
+            where
+              t.id = %s
+        """, (tsne_id,))
+
+        return cursor.fetchone()[0]
 
     def read_tsne_results_for_latest_tsne_model_in_run(self, run_title):
         """

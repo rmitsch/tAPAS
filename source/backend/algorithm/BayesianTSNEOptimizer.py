@@ -14,18 +14,22 @@ class BayesianTSNEOptimizer:
                             "is_metric_fixed", "is_init_method_fixed", "is_random_state_fixed",
                             "is_angle_fixed"]
 
-    def __init__(self, db_connector, run_name):
+    def __init__(self, db_connector, run_name, word_embedding):
         """
         Initializes BO for t-SNE.
         :param db_connector:
         :param run_name:
+        :param word_embedding:
         """
         self.db_connector = db_connector
         self.run_name = run_name
+        self.word_embedding = word_embedding
         # Define dictionary holding fixed parameters.
         self.fixed_parameters = None
         # Define dictionary holding variable parameters.
         self.variable_parameters = None
+        # Store this run's metadata.
+        self.run_metadata = None
 
     def run(self, num_iterations, kappa):
         """
@@ -39,14 +43,14 @@ class BayesianTSNEOptimizer:
         # 1. Load all previous t-SNE parameters and results (read_metadata_for_run). Consider which params are
         #    fixed though! Put only dynamic ones in dict. for BO, static ones should be made available via class
         #    attribute.
-        run_metadata = self.db_connector.read_metadata_for_run(self.run_name)
+        self.run_metadata = self.db_connector.read_metadata_for_run(self.run_name)
 
         # Set fixed parameters.
-        self.fixed_parameters = self._update_parameter_dictionary(run_iter_metadata=run_metadata[0], is_fixed=True)
-        self.variable_parameters = self._update_parameter_dictionary(run_iter_metadata=run_metadata[0], is_fixed=False)
+        self.fixed_parameters = self._update_parameter_dictionary(run_iter_metadata=self.run_metadata[0], is_fixed=True)
+        self.variable_parameters = self._update_parameter_dictionary(run_iter_metadata=self.run_metadata[0], is_fixed=False)
 
         # 2. Generate dict object for BO.initialize from t-SNE metadata.
-        initialization_dataframe = pandas.DataFrame.from_dict(run_metadata)
+        initialization_dataframe = pandas.DataFrame.from_dict(self.run_metadata)
         # Drop non-hyperparameter columns.
         initialization_dataframe.drop(BayesianTSNEOptimizer.ISFIXED_COLUMN_NAMES, inplace=True, axis=1)
 
@@ -57,6 +61,13 @@ class BayesianTSNEOptimizer:
         }
         # Add target values (model quality) to initialization dictionary.
         initialization_dict["target"] = initialization_dataframe["measure_user_quality"].values.tolist()
+        # Replace categorical values (strings) with integer representations.
+        initialization_dict["metric"] = [
+            TSNEModel.CATEGORICAL_VALUES["metrics"].index(metric) for metric in initialization_dict["metric"]
+        ]
+        initialization_dict["init_method"] = [
+            TSNEModel.CATEGORICAL_VALUES["init_method"].index(metric) for metric in initialization_dict["init_method"]
+        ]
 
         # 3. Create BO object.
         # Hardcode thresholds for parameter values. Categorical values are represented by indices.
@@ -64,7 +75,7 @@ class BayesianTSNEOptimizer:
             "n_components": (1, 5),
             "perplexity": (1, 100),
             "early_exaggeration": (1, 50),
-            "learning_rate": (1, 5000),
+            "learning_rate": (1, 2000),
             "n_iter": (1, 10000),
             "min_grad_norm": (1e-10, 1e-1),
             "metric": (1, 21),
@@ -86,8 +97,7 @@ class BayesianTSNEOptimizer:
         bo.initialize(initialization_dict)
 
         # 4. Execute optimization.
-        bo.maximize(init_points=1, n_iter=num_iterations, kappa=kappa);
-
+        bo.maximize(init_points=1, n_iter=num_iterations, kappa=kappa, acq='ucb')
 
     def _update_parameter_dictionary(self, run_iter_metadata, is_fixed):
         """
@@ -133,25 +143,58 @@ class BayesianTSNEOptimizer:
         parameters = {}
         parameters.update(kwargs)
 
+        ################################
         # 1. Prepare parameter set.
+        ################################
 
         # If categorical attributes are to be varied: Translate floating point value specified by BO to category string
         # accepted by sklearn's t-SNE.
         for key in parameters:
             if key in ["metric", "init_method"]:
                 parameters[key] = TSNEModel.CATEGORICAL_VALUES[key][int(parameters["init_method"])]
+            # Cast integer values back to integer.
+            if key in ["n_iter", "random_state", "n_components"]:
+                parameters[key] = int(parameters[key])
 
-        # Add missing (fixed) parameters.
+        # Add missing (fixed) parameters; rename to avoid name conflicts (unify names).
         for key in self.fixed_parameters:
             if key not in parameters:
                 parameters[key] = self.fixed_parameters[key]
+        parameters["num_words"] = self.word_embedding.shape[0]
 
+        ################################
         # 2. Calculate t-SNE model.
+        ################################
 
+        tsne_model = TSNEModel.generate_instance_from_dict_with_db_names(parameters)
+        tsne_model.run(self.word_embedding)
+
+        ################################
         # 3. Persist t-SNE model.
+        ################################
 
+        tsne_model_id = tsne_model.persist(db_connector=self.db_connector, run_name=self.run_name)
+
+        ################################
         # 4. Calculate t-SNE model's quality and update database records.
+        ################################
 
+        quality_measures = TSNEModel.calculate_quality_measures(
+            word_embedding=self.word_embedding,
+            tsne_results=self.db_connector.read_tsne_results(tsne_model_id=tsne_model_id)
+        )
+        # Store in DB.
+        aggregated_quality_score = self.db_connector.set_tsne_quality_scores(
+            trustworthiness=quality_measures["trustworthiness"],
+            continuity=quality_measures["continuity"],
+            generalization_accuracy=quality_measures["generalization_accuracy"],
+            qvec_score=quality_measures["qvec"],
+            tsne_id=tsne_model_id
+        )
+
+        ################################
         # 5. Return model score.
-        return \
-            parameters["angle"] *  parameters["n_components"]
+        ################################
+
+        return aggregated_quality_score
+

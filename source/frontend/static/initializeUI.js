@@ -91,7 +91,7 @@ chartElements = {
         learningRate: {
             defaultValue: 200,
             minValue: 1,
-            maxValue: 5000,
+            maxValue: 2000,
             stepValue: 1,
             values: null,
             type: "numerical",
