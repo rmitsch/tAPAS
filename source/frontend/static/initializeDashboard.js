@@ -5,7 +5,7 @@ var assignedIDs = new Set();
 // Hyperparameter pane.
 chartElements.hyperparameters = {
     numDimensions: {
-        displayName: "Number of dimensions",
+        displayName: "Number of dim.",
         attributeNameInDB: "n_components",
         minValue: 1,
         maxValue: 5,
@@ -41,7 +41,7 @@ chartElements.hyperparameters = {
         displayName: "Learning rate",
         attributeNameInDB: "learning_rate",
         minValue: 1,
-        maxValue: 5000,
+        maxValue: 2000,
         values: null,
         type: "numerical",
         histogram: uniqueID("histogram"),
@@ -49,7 +49,7 @@ chartElements.hyperparameters = {
     },
 
     numIterations: {
-        displayName: "Number of iterations",
+        displayName: "Number of iter.",
         attributeNameInDB: "n_iter",
         minValue: 50,
         maxValue: 10000,
@@ -235,9 +235,12 @@ function binDataCategorically(data, key, config, minNumberOfBins, maxNumberOfBin
 
         // Count elements in bins, remember bin ranges/names.
         for (let i = 0; i < bins.length; i++) {
-            binNames.push(bins[i].x + " - " + bins[i].dx);
+            binNames.push(
+                bins[i].x.toFixed(3) + " - " + (bins[i].x + bins[i].dx).toFixed(3)
+            );
+
             binnedData.push(bins[i].length);
-            binThresholds.push({min: bins[i].x, max: bins[i].dx});
+            binThresholds.push({min: bins[i].x, max: (bins[i].x + bins[i].dx)});
         }
     }
 
@@ -294,14 +297,17 @@ function initHyperparameterPanel()
                     labelDOM = "<span class='runopt_histogramMinValueLabel' id='" + currElement.minLabel + "'>MIN</span>" +
                                "<span class='runopt_histogramMaxValueLabel' id='" + currElement.maxLabel + "'>MAX</span>";
                 }
-                else {
-                    currElement.valueLabel = uniqueID("valueLabel");
-                    labelDOM = "<span class='runopt_histogramValueLabel' id='" + currElement.valueLabel + "'>VALUE</span>";
-                }
+                else
+                    labelDOM = "";
+
+                currElement.valueLabel = uniqueID("valueLabel");
+                valueLabelDOM = "<span class='runopt_histogramValueLabel' id='" + currElement.valueLabel + "'>VALUE</span>";
+
                 $("#hyperparamPane").append(
                     "<div class='runopt_histogramContainer'> " +
                     "   <div class='runopt_histogramContainer_header'>" +
                     "       <span class='runopt_histogramParamLabel'>" + currElement.displayName + "</span>" +
+                    valueLabelDOM +
                     "   </div>" +
                     "   <div class='runopt_histogram' id='" + currElement.histogram + "'></div>" +
                     "   <div class='runopt_histogramExtremaLabelContainer'> " +
@@ -356,12 +362,12 @@ function renderHyperparameterPanel(runMetadata, runName, currentTSNESequenceNumb
                     currElement.prettify(currElement.maxValue) : currElement.maxValue);
             }
             // If categorical value. show currently selected value.
-            else {
-                let columnKey = currElement.attributeNameInDB;
-                $("#" + currElement.valueLabel).html(currElement.prettify != null ?
-                    currElement.prettify(runMetadata[currentTSNEIndex][columnKey]) :
-                    runMetadata[currentTSNEIndex][columnKey]);
-            }
+            let columnKey = currElement.attributeNameInDB;
+            let currValue = currElement.type == "numerical" ?
+                            runMetadata[currentTSNEIndex][columnKey].toFixed(3) :
+                            runMetadata[currentTSNEIndex][columnKey];
+            $("#" + currElement.valueLabel).html(currElement.prettify != null ?
+                currElement.prettify(currValue) : currValue);
 
             if (currElement.histogram != null) {
                 // Generate chart in new div.
@@ -449,31 +455,30 @@ function renderQualityMetricsPane(runMetadata, runName, currentTSNESequenceNumbe
     let measures = {};
     measures.trustworthiness = ["Trustworthiness"];
     measures.continuity = ["Continuity"];
-    measures.generalization = ["Generalization Score"];
+    measures.generalization = ["Generalization accuracy"];
     measures.we_information_ratio = ["WE information ratio"];
+    measures.user_quality_score = ["User quality score"];
+
     let categories = [];
     // Collect metrics.
     for (let i = 0; i < runMetadata.length; i++) {
         let currMetrics = runMetadata[i];
+
         // Make sure we have quality metrics for this object.
         if (currMetrics.measure_trustworthiness != null &&
             currMetrics.measure_continuity != null &&
             currMetrics.measure_generalization_accuracy != null &&
-            currMetrics.measure_word_embedding_information_ratio != null) {
+            currMetrics.measure_word_embedding_information_ratio != null &&
+            currMetrics.measure_user_quality != null) {
                 // Append quality metrics.
                 measures.trustworthiness.push(currMetrics.measure_trustworthiness);
                 measures.continuity.push(currMetrics.measure_continuity);
                 measures.generalization.push(currMetrics.measure_generalization_accuracy);
                 measures.we_information_ratio.push(currMetrics.measure_word_embedding_information_ratio);
+                measures.user_quality_score.push(currMetrics.measure_user_quality);
         }
         // Append category.
-        categories.push("Model #" + i);
-    }
-
-    for (let i = 0; i < 10; i++) {
-        categories.push("Model #" + i);
-        measures.trustworthiness.push(Math.random());
-
+        categories.push("Model #" + (i + 1));
     }
 
     // Generate quality metrics line chart.
@@ -484,7 +489,8 @@ function renderQualityMetricsPane(runMetadata, runName, currentTSNESequenceNumbe
                 measures.trustworthiness,
                 measures.continuity,
                 measures.generalization,
-                measures.we_information_ratio
+                measures.we_information_ratio,
+                measures.user_quality_score
             ],
             colors: {
             },
@@ -648,7 +654,7 @@ function renderMap(tsneData, numWordsToShow)
                 rescale: true,
                 onzoom: function (domain) {
                     // do something with domain, which is the domain after zoomed
-                    console.log(domain);
+//                    console.log(domain);
                 }
             },
             color: function(color, d){ return "#ccc"; },
@@ -674,6 +680,50 @@ function proceedWithOptimization()
     parameters.modelQuality = $("#runopt_qualitySlider").data("ionRangeSlider")["result"]["from"];
     parameters.numIterations = $("#runopt_qualityEvaluationBox_stepper").val();
     parameters.runName = window.RUN_METADATA.title;
+    parameters.datasetName = window.RUN_METADATA.dataset;
+    parameters.numWordsToUse = window.RUN_METADATA.num_words;
+
+    // Update progress indicator.
+    $("#optimization_progressLabel").html("Optimizing | 0%");
+    $("#optimization_status").progressbar({value: 0});
+    $("#optimization_status").css({'display': 'block'});
+    $("#optimization_status .ui-progressbar-value").css({'background': '#3d4a57'});
+
+    // Check progress in DB regularly (every 10 seconds).
+    var progressCheckID = setInterval(function() {
+        let targetIterationNumber = window.RUN_METADATA.runs_sequence_number + parseInt(parameters.numIterations);
+
+        // Check how many t-SNE models were already produced.
+        $.ajax({
+            type: 'GET',
+            url: '/get_latest_tnse_model_sequence_number_in_run',
+            // applicationType/json leads to bad server response for some reason, so let's use common GET args.
+            data: {
+                run_title: parameters.runName
+            },
+            success: function(response) {
+                let percentage = (
+                    (response - window.RUN_METADATA.runs_sequence_number) /
+                    (targetIterationNumber - window.RUN_METADATA.runs_sequence_number)
+                ) * 100;
+
+                $("#optimization_status").progressbar({value: percentage});
+                $("#optimization_progressLabel").html("Optimizing | " + percentage.toFixed(0) + "%");
+
+                // If target iteration number reached: Update UI, stop progress listener.
+                if (response == targetIterationNumber) {
+                    // Update progress bar.
+                    $("#upload_status").progressbar({value: 100});
+                    // Stop progress check.
+                    clearInterval(progressCheckID);
+
+                    // Re-render charts in dashboard.
+                    renderRunData(parameters.runName, $("#runopt_showNumberOfWordsSlider").data("ionRangeSlider")["result"]["from"]);
+                    $("#optimization_status").css({'display': 'none'});
+                }
+            }
+        });
+    }, 10000);
 
     // Instruct server with next optimization step.
     $.ajax({
@@ -681,15 +731,9 @@ function proceedWithOptimization()
         url: "/proceed_with_optimization",
         data: JSON.stringify(parameters),
         contentType: "application/json",
-        success: function(html_data) {
-            // 1. Parse new t-SNE model.
-            // 2. Update map.
-            // 3. Fetch new run metadata.
-            // 4. Update hyperarameter panel.
-            // 5. Update quality metrics panel.
+        success: function(response) {
         }
     });
-
 }
 
 /**
@@ -697,7 +741,6 @@ function proceedWithOptimization()
  */
 function initQueryField()
 {
-
     $("#queryFieldInput").on('change', function() {
         window.SEARCH_TERM = $("#queryFieldInput").val();
 
@@ -707,7 +750,6 @@ function initQueryField()
         for (let i = 0; i < window.CURRENT_TSNE_DATA_LOOKUP.length; i++) {
             if (window.SEARCH_TERM == window.CURRENT_TSNE_DATA_LOOKUP[i].word) {
                 // 2. Increase radius of looked for point.
-                console.log(d3.select("#runopt_wvScatterplot .c3-circle-" + i));
                 d3.select("#runopt_wvScatterplot .c3-circle-" + i).attr("r", 20);
                 // 3. Reset zoom (Alt. to jumping to target in scatterplot).
                 window.MAP_CHART.unzoom();
@@ -778,14 +820,14 @@ function initQualityEvaluationBox()
         $("#qualityEvaluationBox").animate({
             width: "300px",
             height: "265px",
-        }, 100, function() {});
+        }, 50, function() {});
     });
     // Initialize leave listener.
     $("#qualityEvaluationBox").mouseleave(function() {
         $("#qualityEvaluationBox").animate({
             width: "200px",
             height: "25px",
-        }, 100, function() {});
+        }, 50, function() {});
     });
 }
 
@@ -803,10 +845,16 @@ function loadRun()
     // Set dataset name in quality evaluation box.
     $("#qualityEvaluationBox_datasetName").html(datasetName);
 
-    // Load data for run.
-    //      Dictionary with words -> t-SNE coordinates.
-    //      Quality measures & hyperparameters for this and all other runs for this dataset so far.
+    renderRunData(runName, 1000);
+}
 
+/**
+ * Auxiliary function for loading specified target/run and renders dashboard with loaded data.
+ * @param runName
+ * @param numberOfWordsToDisplayInMap
+ */
+function renderRunData(runName, numberOfWordsToDisplayInMap)
+{
     // 1. Load quality measure & hyperparameters for this and other runs.
     $.ajax({
         type: 'GET',
@@ -817,8 +865,6 @@ function loadRun()
         },
         success: function(response) {
             var metadataResponse = response;
-            // Store current run metadata.
-            window.RUN_METADATA = metadataResponse[0];
 
             // Find highest sequence t-SNE model index for current run.
             var currentTSNESequenceNumber = -1;
@@ -831,6 +877,9 @@ function loadRun()
                     currentTSNEIndex = i;
                 }
             }
+            // Store current run metadata.
+            window.RUN_METADATA = metadataResponse[currentTSNEIndex];
+
             // Set current t-SNE-model's sequence number in run.
             $("#qualityEvaluationBox_runIteration").html(window.RUN_METADATA.title + "#" + currentTSNESequenceNumber + "@");
             // Update slider for number of words.
@@ -860,7 +909,7 @@ function loadRun()
                     // Render quality metrics pane.
                     renderQualityMetricsPane(metadataResponse, runName, currentTSNESequenceNumber, currentTSNEIndex);
                     // Render map for word coordinates.
-                    renderMap(window.TSNE_RESULTS, 1000);
+                    renderMap(window.TSNE_RESULTS, numberOfWordsToDisplayInMap);
                 }
             });
         }

@@ -6,12 +6,8 @@ from flask import Flask
 from flask import render_template
 from flask import request
 from flask import jsonify
-import coranking
-from coranking.metrics import trustworthiness, continuity
-import numpy
-import sklearn.neighbors
-import json
 import werkzeug
+from multiprocessing import Process
 
 import backend.utils.Utils as Utils
 from backend.algorithm.WordVector import WordVector
@@ -19,7 +15,6 @@ from backend.algorithm.QVEC import QVECConfiguration
 from backend.algorithm.TSNEModel import TSNEModel
 from backend.algorithm.WordEmbeddingClusterer import WordEmbeddingClusterer
 from backend.algorithm.BayesianTSNEOptimizer import BayesianTSNEOptimizer
-
 
 
 def init_flask_app():
@@ -281,16 +276,34 @@ def proceed_with_optimization():
     Proceeds with optimization of current t-SNE model.
     :return: Result of latest t-SNE model.
     """
+    dataset_name = request.get_json()["datasetName"]
+    run_name = request.get_json()["runName"]
+    num_words = request.get_json()["numWordsToUse"]
+
+    # Fetch word embedding from DB, if not done yet.
+    fetch_word_embedding_for_dataset(app=app, dataset_name=dataset_name, invalidate_cache=False)
 
     optimizer = BayesianTSNEOptimizer(
         db_connector=app.config["DB_CONNECTOR"],
-        run_name=request.get_json()["runName"]
+        run_name=run_name,
+        word_embedding=app.config["DATA"]["word_embeddings"][dataset_name].head(num_words)
     )
-    optimizer.run(num_iterations=request.get_json()["numIterations"])
+    # Start optimizer in dedicated function to allow Flask serving other information in the meantime.
+    p = Process(target=optimizer.run, args=(int(request.get_json()["numIterations"]),))
+    p.start()
 
     return "200"
 
 
+@app.route('/get_latest_tnse_model_sequence_number_in_run', methods=["GET"])
+def get_latest_tnse_model_sequence_number_in_run():
+    """
+    Reads and returns highest t-SNE sequence number in specified run.
+    :return:
+    """
+    run_title = request.args["run_title"]
+
+    return jsonify(app.config["DB_CONNECTOR"].read_highest_tsne_sequence_number_in_run(run_title=run_title))
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=7182, debug=True)

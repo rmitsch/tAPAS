@@ -13,14 +13,16 @@ import coranking
 from coranking.metrics import trustworthiness, continuity
 from bayes_opt import BayesianOptimization
 from backend.algorithm.BayesianTSNEOptimizer import BayesianTSNEOptimizer
+from flask import jsonify
+import pandas
 
 db_connector = Utils.connect_to_database(False)
 
 
-db_connector.read_metadata_for_run(run_title="completerun")
+# db_connector.read_metadata_for_run(run_title="completerun")
 
-word_embedding = db_connector.read_word_vectors_for_dataset("wiki_small.en.vec")
-word_embedding_small = word_embedding.head(n=1000)
+# word_embedding = db_connector.read_word_vectors_for_dataset("wiki_small.en.vec")
+# word_embedding_small = word_embedding.head(n=1000)
 #
 # stacked_wordvectors = numpy.stack(word_embedding['values'].values, axis=0)
 
@@ -60,5 +62,9 @@ word_embedding_small = word_embedding.head(n=1000)
 #     print("Warning")
 
 
-blab = BayesianTSNEOptimizer(db_connector=db_connector, run_name="run10", word_embedding=word_embedding_small)
-blab.run(num_iterations=5, kappa=4)
+# blab = BayesianTSNEOptimizer(db_connector=db_connector, run_name="run10", word_embedding=word_embedding_small)
+# blab.run(num_iterations=5, kappa=4)
+
+blub = [[3, 3], [2, 5]]
+print(numpy.array(blub))
+print(pandas.DataFrame(numpy.array(blub)).to_json(orient="index"))

@@ -447,7 +447,7 @@ class DBConnector:
                 tsne_configuration["initMethod"],
                 tsne_configuration["randomState"],
                 tsne_configuration["angle"],
-                sequence_number_in_run,
+                sequence_number_in_run + 1,
                 run_id
             ))
 
@@ -673,8 +673,6 @@ class DBConnector:
         Reads t-SNE values for latest t-SNE model in specified run.
         See self.read_tsne_results(tsne_model_id).
         :param run_title:
-        :param limit_to_number_of_words_to_use: Specifies whether all results or just the first number_of_words should
-        be returned. Words are picked based on their indices (lower ones being more frequent/important).
         :return: Dataframe with t-SNE results for latest model in specified run.
         """
         cursor = self.connection.cursor()
@@ -767,3 +765,24 @@ class DBConnector:
         """, (run_title,))
 
         return [row[0] for row in cursor.fetchall()]
+
+    def read_highest_tsne_sequence_number_in_run(self, run_title):
+        """
+        Reads highest t-SNE model sequence number in specified run.
+        :param run_title:
+        :return:
+        """
+        cursor = self.connection.cursor()
+
+        cursor.execute("""
+            select
+                max(t.runs_sequence_number)
+            from
+                tapas.runs r
+            inner join tapas.tsne_models t on
+                t.runs_id = r.id
+            where
+                r.title = %s
+        """, (run_title,))
+
+        return cursor.fetchone()[0]

@@ -30,8 +30,10 @@ class BayesianTSNEOptimizer:
         self.variable_parameters = None
         # Store this run's metadata.
         self.run_metadata = None
+        # Store latest t-SNE results.
+        self.tsne_results = None
 
-    def run(self, num_iterations, kappa):
+    def run(self, num_iterations, kappa=5):
         """
         Fetches latest t-SNE model from DB. Collects pickled BO status object, if existent.
         Intermediate t-SNE models are persisted.
@@ -77,7 +79,7 @@ class BayesianTSNEOptimizer:
             "early_exaggeration": (1, 50),
             "learning_rate": (1, 2000),
             "n_iter": (1, 10000),
-            "min_grad_norm": (1e-10, 1e-1),
+            "min_grad_norm": (0.0000000001, 0.1),
             "metric": (1, 21),
             "init_method": (1, 2),
             "random_state": (1, 100),
@@ -97,7 +99,7 @@ class BayesianTSNEOptimizer:
         bo.initialize(initialization_dict)
 
         # 4. Execute optimization.
-        bo.maximize(init_points=1, n_iter=num_iterations, kappa=kappa, acq='ucb')
+        bo.maximize(init_points=1, n_iter=(num_iterations - 1), kappa=kappa, acq='ucb')
 
     def _update_parameter_dictionary(self, run_iter_metadata, is_fixed):
         """
@@ -167,7 +169,7 @@ class BayesianTSNEOptimizer:
         ################################
 
         tsne_model = TSNEModel.generate_instance_from_dict_with_db_names(parameters)
-        tsne_model.run(self.word_embedding)
+        self.tsne_results = tsne_model.run(self.word_embedding)
 
         ################################
         # 3. Persist t-SNE model.
@@ -197,4 +199,3 @@ class BayesianTSNEOptimizer:
         ################################
 
         return aggregated_quality_score
-
