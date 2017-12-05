@@ -14,6 +14,8 @@ class WordEmbeddingClusterer:
         """
         self.data = data
 
+    # s
+
     def run(self):
         """
         Runs clustering on specified word embedding.

@@ -27,6 +27,7 @@
 
 #qualityPane {
     display: block;
+    position: relative;
     width: 100%;
     height: 25%;
     background-color: #fff;
@@ -62,7 +63,8 @@
 }
 
 div.runopt_histogramContainer {
-    display:inline-block;
+    display: inline-block;
+    position: relative;
     width: 47%;
     margin-top: 0px;
 }
@@ -174,6 +176,8 @@ div.runopt_evalBoxSliderLabel {
 
 #qualityMetricsLinechart {
     margin-top: 5px;
+    width: 600px;
+    height: 100%;
 }
 
 #runopt_wvScatterplot {
@@ -196,4 +200,12 @@ div.runopt_evalBoxSliderLabel {
     width: 138px;
     left: 105px;
     top: -46px;
+}
+
+hr.runopt_histogram_xaxis {
+    position: relative;
+    top: -11px;
+    left: 12px;
+    width: 83%;
+    margin: 0px;
 }

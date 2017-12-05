@@ -15,6 +15,7 @@ from backend.algorithm.QVEC import QVECConfiguration
 from backend.algorithm.TSNEModel import TSNEModel
 from backend.algorithm.WordEmbeddingClusterer import WordEmbeddingClusterer
 from backend.algorithm.BayesianTSNEOptimizer import BayesianTSNEOptimizer
+import sobol_seq
 
 
 def init_flask_app():
@@ -129,6 +130,11 @@ def fetch_dataset_metadata():
     return jsonify(app.config["DB_CONNECTOR"].read_first_run_metadata())
 
 
+@app.route('/fetch_all_tsne_metadata_in_dataset', methods=["GET"])
+def fetch_tsne_metadata_in_dataset():
+    return jsonify(app.config["DB_CONNECTOR"].read_tsne_metadata_in_dataset(request.args["dataset_name"]))
+
+
 @app.route('/dataset_word_counts', methods=["GET"])
 def fetch_dataset_word_counts():
     return jsonify(app.config["DB_CONNECTOR"].read_dataset_word_counts())
@@ -193,8 +199,8 @@ def cluster_wordembedding():
     return "200"
 
 
-@app.route('/create_initial_tsne_model', methods=["POST"])
-def create_initial_tsne_model():
+@app.route('/create_initial_tsne_models', methods=["POST"])
+def create_initial_tsne_models():
     """
     Calculates initial t-SNE model for newly created run.
     :return:
@@ -207,14 +213,33 @@ def create_initial_tsne_model():
     fetch_word_embedding_for_dataset(app=app, dataset_name=dataset_name, invalidate_cache=False)
     limited_word_embedding = app.config["DATA"]["word_embeddings"][dataset_name].head(num_words_to_use)
 
+    # Generate t-SNE parameter sets.
+    tsne_parameter_sets = [initial_tsne_parameters]
+    tsne_parameter_sets.extend(BayesianTSNEOptimizer.generate_initial_parameter_sets(fixed_parameters, 9))
+
+    print(initial_tsne_parameters)
+    print(dataset_name)
+    print(num_words_to_use)
+
+
+    NEXT STEPS:
+        1. Consider fixed values in .generate_initial_parameter_sets(). Test.
+        2. Produces t-SNE models for all parameter values.
+        3. Frontend: Check progress.
+        4. Determine quality for all t-SNE models.
+        5. Frontend: Extend progress check to model quality checking.
+        6. Think about additional vis. next to quality pane.
+        7. PAELLA:
+
+
     # 1. Generate t-SNE model.
-    initial_tsne_model = TSNEModel.generate_instance_from_dict(initial_tsne_parameters)
-    initial_tsne_model.run(word_embedding=limited_word_embedding)
+    # initial_tsne_model = TSNEModel.generate_instance_from_dict(initial_tsne_parameters)
+    # initial_tsne_model.run(word_embedding=limited_word_embedding)
 
     # 2. Persist t-SNE model and results.
-    tsne_model_id = initial_tsne_model.persist(app.config["DB_CONNECTOR"], initial_tsne_parameters["runName"])
+    # tsne_model_id = initial_tsne_model.persist(app.config["DB_CONNECTOR"], initial_tsne_parameters["runName"])
 
-    return str(tsne_model_id)
+    return "4" # str(tsne_model_id)
 
 
 @app.route('/calculate_quality_measures', methods=["POST"])
@@ -302,8 +327,20 @@ def get_latest_tnse_model_sequence_number_in_run():
     :return:
     """
     run_title = request.args["run_title"]
-
     return jsonify(app.config["DB_CONNECTOR"].read_highest_tsne_sequence_number_in_run(run_title=run_title))
+
+
+@app.route('/get_latest_tnse_model_sequence_number_with_quality_scores_in_run', methods=["GET"])
+def get_latest_tnse_model_sequence_number_with_quality_scores_in_run():
+    """
+    Reads and returns highest t-SNE sequence number in specified run.
+    :return:
+    """
+    run_title = request.args["run_title"]
+    return jsonify(
+        app.config["DB_CONNECTOR"].read_highest_tsne_sequence_number_with_quality_scores_in_run(run_title=run_title)
+    )
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=7182, debug=True)

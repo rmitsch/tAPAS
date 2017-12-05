@@ -1,18 +1,13 @@
 from bayes_opt import BayesianOptimization
 from .TSNEModel import TSNEModel
 import pandas
+import sobol_seq
 
 
 class BayesianTSNEOptimizer:
     """
     Wrapper class for Bayesian optmization of t-SNE models.
     """
-
-    # Define column names containing information whether parameter is fixed or not.
-    ISFIXED_COLUMN_NAMES = ["is_n_components_fixed", "is_perplexity_fixed", "is_early_exaggeration_fixed",
-                            "is_learning_rate_fixed", "is_n_iter_fixed", "is_min_grad_norm_fixed",
-                            "is_metric_fixed", "is_init_method_fixed", "is_random_state_fixed",
-                            "is_angle_fixed"]
 
     def __init__(self, db_connector, run_name, word_embedding):
         """
@@ -49,42 +44,32 @@ class BayesianTSNEOptimizer:
 
         # Set fixed parameters.
         self.fixed_parameters = self._update_parameter_dictionary(run_iter_metadata=self.run_metadata[0], is_fixed=True)
-        self.variable_parameters = self._update_parameter_dictionary(run_iter_metadata=self.run_metadata[0], is_fixed=False)
+        self.variable_parameters = self._update_parameter_dictionary(
+            run_iter_metadata=self.run_metadata[0], is_fixed=False
+        )
 
         # 2. Generate dict object for BO.initialize from t-SNE metadata.
         initialization_dataframe = pandas.DataFrame.from_dict(self.run_metadata)
         # Drop non-hyperparameter columns.
-        initialization_dataframe.drop(BayesianTSNEOptimizer.ISFIXED_COLUMN_NAMES, inplace=True, axis=1)
+        initialization_dataframe.drop(TSNEModel.ISFIXED_COLUMN_NAMES, inplace=True, axis=1)
 
         # Create initialization dictionary.
         initialization_dict = {
             column_name[3:-6]: initialization_dataframe[column_name[3:-6]].values.tolist()
-            for column_name in BayesianTSNEOptimizer.ISFIXED_COLUMN_NAMES
+            for column_name in TSNEModel.ISFIXED_COLUMN_NAMES
         }
         # Add target values (model quality) to initialization dictionary.
         initialization_dict["target"] = initialization_dataframe["measure_user_quality"].values.tolist()
         # Replace categorical values (strings) with integer representations.
         initialization_dict["metric"] = [
-            TSNEModel.CATEGORICAL_VALUES["metrics"].index(metric) for metric in initialization_dict["metric"]
+            TSNEModel.CATEGORICAL_VALUES["metric"].index(metric) for metric in initialization_dict["metric"]
         ]
         initialization_dict["init_method"] = [
             TSNEModel.CATEGORICAL_VALUES["init_method"].index(metric) for metric in initialization_dict["init_method"]
         ]
 
         # 3. Create BO object.
-        # Hardcode thresholds for parameter values. Categorical values are represented by indices.
-        parameter_ranges = {
-            "n_components": (1, 5),
-            "perplexity": (1, 100),
-            "early_exaggeration": (1, 50),
-            "learning_rate": (1, 2000),
-            "n_iter": (1, 10000),
-            "min_grad_norm": (0.0000000001, 0.1),
-            "metric": (1, 21),
-            "init_method": (1, 2),
-            "random_state": (1, 100),
-            "angle": (0.1, 1)
-        }
+        parameter_ranges = TSNEModel.PARAMETER_RANGES
 
         # Drop all fixed parameters' ranges and entries in initialization dictionary.
         for key in self.fixed_parameters:
@@ -112,7 +97,7 @@ class BayesianTSNEOptimizer:
         parameter_dictionary = {
             column_name[3:-6]: run_iter_metadata[column_name[3:-6]]
             if run_iter_metadata[column_name] is is_fixed else None
-            for column_name in BayesianTSNEOptimizer.ISFIXED_COLUMN_NAMES
+            for column_name in TSNEModel.ISFIXED_COLUMN_NAMES
         }
 
         return parameter_dictionary
@@ -153,7 +138,7 @@ class BayesianTSNEOptimizer:
         # accepted by sklearn's t-SNE.
         for key in parameters:
             if key in ["metric", "init_method"]:
-                parameters[key] = TSNEModel.CATEGORICAL_VALUES[key][int(parameters["init_method"])]
+                parameters[key] = TSNEModel.CATEGORICAL_VALUES[key][round(parameters[key])]
             # Cast integer values back to integer.
             if key in ["n_iter", "random_state", "n_components"]:
                 parameters[key] = int(parameters[key])
@@ -199,3 +184,38 @@ class BayesianTSNEOptimizer:
         ################################
 
         return aggregated_quality_score
+
+    @staticmethod
+    def generate_initial_parameter_sets(self, num_iter=10):
+        """
+        Generates initial t-SNE parameter samples based on Sobol sequences.
+        :param self:
+        :param num_iter:
+        :return: List of dictionaries with valid t-SNE parameter sets.
+        """
+        parameter_sets = []
+        sobol_numbers = sobol_seq.i4_sobol_generate(10, num_iter)
+
+        for curr_iter in range(0, num_iter):
+            parameter_set = {}
+
+            for param_entry, sobol_number in zip(TSNEModel.PARAMETER_RANGES.items(), sobol_numbers[curr_iter]):
+                param = param_entry[0]
+                param_range = param_entry[1]
+
+                # Categorical values.
+                if param in ("init_method", "metric"):
+                    index = param_range[0] + round((param_range[1] - param_range[0]) * sobol_number)
+                    parameter_set[param] = TSNEModel.CATEGORICAL_VALUES[param][int(index)]
+
+                # Numerical values.
+                else:
+                    # Integer values.
+                    if param in ["n_components", "random_state", "n_iter"]:
+                        parameter_set[param] = param_range[0] + round((param_range[1] - param_range[0]) * sobol_number)
+                    # Float values.
+                    else:
+                        parameter_set[param] = param_range[0] + (param_range[1] - param_range[0]) * sobol_number
+            parameter_sets.append(parameter_set)
+
+        return parameter_sets

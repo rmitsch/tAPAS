@@ -310,6 +310,7 @@ function initHyperparameterPanel()
                     valueLabelDOM +
                     "   </div>" +
                     "   <div class='runopt_histogram' id='" + currElement.histogram + "'></div>" +
+                    "   <hr class='runopt_histogram_xaxis'> " +
                     "   <div class='runopt_histogramExtremaLabelContainer'> " +
                     labelDOM +
                     "   </div> " +
@@ -352,7 +353,7 @@ function renderHyperparameterPanel(runMetadata, runName, currentTSNESequenceNumb
             let currElement = chartElements.hyperparameters[key];
 
             // Bin data.
-            let binnedData = binDataCategorically(runMetadata, currElement.attributeNameInDB, currElement, 0, 10);
+            let binnedData = binDataCategorically(runMetadata, currElement.attributeNameInDB, currElement, 10, 10);
             binnedData.data.unshift("Count");
             // Find extrema, update extrema labels (if numerical).
             if (currElement.type == "numerical") {
@@ -463,6 +464,7 @@ function renderQualityMetricsPane(runMetadata, runName, currentTSNESequenceNumbe
     // Collect metrics.
     for (let i = 0; i < runMetadata.length; i++) {
         let currMetrics = runMetadata[i];
+        console.log(i);
 
         // Make sure we have quality metrics for this object.
         if (currMetrics.measure_trustworthiness != null &&
@@ -523,8 +525,8 @@ function renderQualityMetricsPane(runMetadata, runName, currentTSNESequenceNumbe
             }
         },
         size: {
-            width: ($('#qualityPane').width()) * 0.95,
-            height: ($('#qualityPane').height()) * 0.92
+            width: ($('#qualityMetricsLinechart').width()) * 0.95,
+            height: ($('#qualityMetricsLinechart').height()) * 0.92
         },
         point: {
             show: true
@@ -659,12 +661,13 @@ function renderMap(tsneData, numWordsToShow)
             },
             color: function(color, d){ return "#ccc"; },
             onrendered: function () {
-                d3.selectAll("#runopt_wvScatterplot circle").style("fill",
-                    function(d) {
-                        let currClusterID = window.CURRENT_TSNE_DATA_LOOKUP[d.index].clusterID;
-                        return d3.rgb(colors[currClusterID % colors.length]);
-                    }
-                );
+                // Color points by their cluster ID.
+//                d3.selectAll("#runopt_wvScatterplot circle").style("fill",
+//                    function(d) {
+//                        let currClusterID = window.CURRENT_TSNE_DATA_LOOKUP[d.index].clusterID;
+//                        return d3.rgb(colors[currClusterID % colors.length]);
+//                    }
+//                );
             }
         });
     });
@@ -871,6 +874,7 @@ function renderRunData(runName, numberOfWordsToDisplayInMap)
             // Find index at which current t-SNE model can be found in response dataset.
             var currentTSNEIndex = -1;
             for (let i = 0; i < metadataResponse.length; i++) {
+                console.log(metadataResponse[i].runs_sequence_number);
                 if (metadataResponse[i].title == runName &&
                     currentTSNESequenceNumber < metadataResponse[i].runs_sequence_number) {
                     currentTSNESequenceNumber =  metadataResponse[i].runs_sequence_number;

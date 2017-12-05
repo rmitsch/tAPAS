@@ -23,7 +23,8 @@ chartElements = {
             dropdown: "nrps1",
             toggleButton: null,
             slider: null,
-            fixedByDefault: null
+            fixedByDefault: null,
+            attributeNameInDB: "dataset_name"
         },
 
         numWords: {
@@ -39,7 +40,8 @@ chartElements = {
             dropdown: null,
             toggleButton: null,
             slider: "slider13",
-            fixedByDefault: null
+            fixedByDefault: null,
+            attributeNameInDB: "num_words"
         },
 
         numDimensions: {
@@ -55,7 +57,8 @@ chartElements = {
             dropdown: null,
             toggleButton: "fixValueCheck1",
             slider: "slider1",
-            fixedByDefault: true
+            fixedByDefault: true,
+            attributeNameInDB: "n_components"
         },
 
         perplexity: {
@@ -70,7 +73,8 @@ chartElements = {
             dropdown: null,
             toggleButton: "fixValueCheck2",
             slider: "slider2",
-            fixedByDefault: false
+            fixedByDefault: false,
+            attributeNameInDB: "perplexity"
         },
 
         earlyExaggeration: {
@@ -85,7 +89,8 @@ chartElements = {
             dropdown: null,
             toggleButton: "fixValueCheck3",
             slider: "slider3",
-            fixedByDefault: false
+            fixedByDefault: false,
+            attributeNameInDB: "early_exaggeration"
         },
 
         learningRate: {
@@ -100,7 +105,8 @@ chartElements = {
             dropdown: null,
             toggleButton: "fixValueCheck4",
             slider: "slider4",
-            fixedByDefault: false
+            fixedByDefault: false,
+            attributeNameInDB: "learning_rate"
         },
 
         numIterations: {
@@ -115,7 +121,8 @@ chartElements = {
             dropdown: null,
             toggleButton: "fixValueCheck5",
             slider: "slider5",
-            fixedByDefault: false
+            fixedByDefault: false,
+            attributeNameInDB: "n_iter"
         },
 
         minGradNorm: {
@@ -136,7 +143,8 @@ chartElements = {
             },
             normalize: function(num) {
                 return Math.log10(num);
-            }
+            },
+            attributeNameInDB: "min_grad_norm"
         },
 
         randomState: {
@@ -151,7 +159,8 @@ chartElements = {
             dropdown: null,
             toggleButton: "fixValueCheck7",
             slider: "slider7",
-            fixedByDefault: true
+            fixedByDefault: true,
+            attributeNameInDB: "random_state"
         },
 
         angle: {
@@ -166,7 +175,8 @@ chartElements = {
             dropdown: null,
             toggleButton: "fixValueCheck8",
             slider: "slider8",
-            fixedByDefault: false
+            fixedByDefault: false,
+            attributeNameInDB: "angle"
         },
 
         metric: {
@@ -184,7 +194,8 @@ chartElements = {
             dropdown: "nrps2",
             toggleButton: "fixValueCheck9",
             slider: null,
-            fixedByDefault: true
+            fixedByDefault: true,
+            attributeNameInDB: "metric"
         },
 
         initMethod: {
@@ -199,7 +210,8 @@ chartElements = {
             dropdown: "nrps3",
             toggleButton: "fixValueCheck10",
             slider: null,
-            fixedByDefault: true
+            fixedByDefault: true,
+            attributeNameInDB: "init_method"
         },
 
         measureWeight_trustworthiness: {
@@ -213,7 +225,8 @@ chartElements = {
             stepper: "stepper_measureTrustworthiness",
             dropdown: null,
             toggleButton: null,
-            slider: "slider9"
+            slider: "slider9",
+            attributeNameInDB: "measure_weight_trustworthiness"
         },
 
         measureWeight_continuity: {
@@ -227,7 +240,8 @@ chartElements = {
             stepper: "stepper_measureContinuity",
             dropdown: null,
             toggleButton: null,
-            slider: "slider10"
+            slider: "slider10",
+            attributeNameInDB: "measure_weight_continuity"
         },
 
         measureWeight_generalization: {
@@ -241,7 +255,8 @@ chartElements = {
             stepper: "stepper_generalizationAccuracy",
             dropdown: null,
             toggleButton: null,
-            slider: "slider11"
+            slider: "slider11",
+            attributeNameInDB: "measure_weight_generalization_accuracy"
         },
 
         measureWeight_relativeWEQ: {
@@ -255,7 +270,8 @@ chartElements = {
             stepper: "stepper_relativeWEQuality",
             dropdown: null,
             toggleButton: null,
-            slider: "slider12"
+            slider: "slider12",
+            attributeNameInDB: "measure_weight_we_information_ratio"
         }
     }
 };
@@ -293,49 +309,75 @@ function createNewRun()
     if (parameters["runName"] != "") {
         // Send config. to route.
         $.ajax({
-          type: "POST",
-          url: "/create_new_run",
-          data: JSON.stringify(parameters),
-          success: function(html_data) {
-            // Init progress bar.
-            $("#newRun_status").progressbar({
-                value: 10
-            });
-            $("#newRun_status").css({'display': 'block'});
-            $("#newRun_status .ui-progressbar-value").css({'background': '#3d4a57'});
-            $("#newRun_status_progressLabel").html("Creating initial t-SNE model.");
+            type: "POST",
+            url: "/create_new_run",
+            data: JSON.stringify(parameters),
+            success: function(html_data) {
+                // Init progress bar.
+                $("#newRun_status").progressbar({
+                    value: 5
+                });
+                $("#newRun_status").css({'display': 'block'});
+                $("#newRun_status .ui-progressbar-value").css({'background': '#3d4a57'});
+                $("#newRun_status_progressLabel").html("Creating initial t-SNE model.");
 
-            // Create initial t-SNE model.
-            $.ajax({
-                type: "POST",
-                url: "/create_initial_tsne_model",
-                data: JSON.stringify(parameters),
-                success: function(tsne_model_id) {
-                    $("#newRun_status").progressbar({
-                        value: 40
-                    });
-                    $("#newRun_status_progressLabel").html("Calculating quality measures.");
+                // Create initial t-SNE models.
+                $.ajax({
+                    type: "POST",
+                    url: "/create_initial_tsne_models",
+                    data: JSON.stringify(parameters),
+                    success: function(tsne_model_id) {
+//                        var progressCheckID = setInterval(function() {
+                            // Check how many t-SNE models were already produced.
+//                            $.ajax({
+//                                type: 'GET',
+//                                url: '/get_latest_tnse_model_sequence_number_in_run',
+//                                // applicationType/json leads to bad server response for some reason, so let's use common GET args.
+//                                data: {
+//                                    run_title: parameters.runName
+//                                },
+//                                success: function(response) {
+//                                    let percentage = 5 + (response / targetIterationNumber) / 2.0 * 100;
+//
+//                                    $("#newRun_status").progressbar({value: percentage});
+//                                    $("#newRun_status_progressLabel").html("Creating initial models | " + percentage.toFixed(0) + "%");
+//
+//                                    // If target iteration number reached: Update UI, stop progress listener.
+//                                    if (response == targetIterationNumber) {
+//                                        // Update progress bar.
+//                                        $("#newRun_status").progressbar({value: 55});
+//                                        // Stop progress check.
+//                                        clearInterval(progressCheckID);
 
-                    // Calculate quality measures.
-                    $.ajax({
-                        type: "POST",
-                        url: "/calculate_quality_measures",
-                        data: JSON.stringify({
-                            tsne_model_id: tsne_model_id,
-                            dataset_name: parameters.dataset,
-                            num_words: parameters.numWords
-                        }),
-                        success: function(html_data) {
-                            $("#newRun_status").progressbar({
-                                value: 100
-                            });
-                            $("#newRun_status_progressLabel").html("Finished.");
-                        },
-                        contentType: "application/json"
-                    });
+                                        // Calculate quality measures.
+                //                            $.ajax({
+                //                                type: "POST",
+                //                                url: "/calculate_quality_measures",
+                //                                data: JSON.stringify({
+                //                                    tsne_model_id: tsne_model_id,
+                //                                    dataset_name: parameters.dataset,
+                //                                    num_words: parameters.numWords
+                //                                }),
+                //                                success: function(html_data) {
+                //                                    $("#newRun_status").progressbar({
+                //                                        value: 100
+                //                                    });
+                //                                    $("#newRun_status_progressLabel").html("Finished.");
+                //                                },
+                //                                contentType: "application/json"
+                //                            });
+//                                    }
+//                                }
+//                            });
+//                        }, 10000);
                 },
                 contentType: "application/json"
             });
+
+            // Expected (and hardcoded): 10 initial, Sobel-sampled models.
+            var targetIterationNumber = 2;
+            // Check progress in DB regularly (every 10 seconds).
+
           },
           contentType: "application/json"
         });
@@ -413,15 +455,18 @@ function initDatasetSelect(dataset_metadata)
                     // Select first value.
                     datasetSelect.value = html_data[0]["name"];
 
+                    // Generate histograms.
+                    renderInitialParameterHistograms(datasetSelect.value, true);
+
                     // Update value in config object for word count slider.
                     updateNumWordsValues(datasetSelect.value);
                     // Set update handler on change for dataset selection in view for run creation.
                     $("#nrps1").change(function() {
+                        // Update number of words to be shown.
                         updateNumWordsValues(datasetSelect.value);
+                        // Show current parameter histograms.
+                        renderInitialParameterHistograms(datasetSelect.value, false);
                     });
-
-                    // Generate histograms.
-                    initInitialParameterHistograms(dataset_metadata);
 
                     // Initialize selects for popup @ run optimization.
                     var runDataAjaxConfig = {
@@ -635,76 +680,90 @@ function binData(data, key, config, numberOfBins)
 
 /**
  * Initialize parameter histograms and toggle buttons in view "Create new run".
- * @param dataset_metadata
+ * @param dataset_name
+ * @param initToggleButtons
  */
-function initInitialParameterHistograms(dataset_metadata)
+function renderInitialParameterHistograms(dataset_name, initToggleButtons)
 {
-    $(document).ready(function(){
-        // Loop through all defined chart elements.
-        for (var key in chartElements["menu_createrun"]) {
-            let currElement = chartElements["menu_createrun"][key];
+    $(document).ready(function() {
+        // Fetch parameter data for all runs
+        $.ajax({
+            type: 'GET',
+            url: '/fetch_all_tsne_metadata_in_dataset',
+            // applicationType/json leads to bad server response for some reason, so let's use common GET args.
+            data: {
+                dataset_name: dataset_name
+            },
+            success: function(response) {
+                // Loop through all defined chart elements.
+                for (var key in chartElements["menu_createrun"]) {
+                    let currElement = chartElements["menu_createrun"][key];
+                    let attributeNameInDB = chartElements["menu_createrun"][key].attributeNameInDB;
 
-            // Bin data.
-            binnedData = binDataCategorically(dataset_metadata, key.toLowerCase(), currElement, 10, 10);
-            binnedData.data.unshift("Count");
+                    // Bin data.
+                    binnedData = binDataCategorically(response, attributeNameInDB, currElement, 10, 10);
+                    binnedData.data.unshift("Count");
 
-            // If element has histogram:
-            if (currElement["histogram"] != null) {
-                var chart = c3.generate({
-                    bindto: "#" + currElement["histogram"],
-                    data: {
-                        columns: [
-                            binnedData.data
-                        ],
-                        colors: {
-                            Count: '#3d4a57'
-                        },
-                        type: 'bar'
-                    },
-                    bar: {
-                        width: {
-                            ratio: 0.9 // this makes bar width 50% of length between ticks
-                        }
-                    },
-                    legend: {
-                        show: false
-                    },
-                    tooltip: {
-                        show: true
-                    },
-                    axis: {
-                            x: {show: false},
-                            y: {show: false}
-                    },
-                    size: {
-                        height: 50
-                    },
-                    point: {
-                        show: false
+                    // If element has histogram:
+                    if (currElement["histogram"] != null) {
+                        var chart = c3.generate({
+                            bindto: "#" + currElement["histogram"],
+                            data: {
+                                columns: [
+                                    binnedData.data
+                                ],
+                                colors: {
+                                    Count: '#3d4a57'
+                                },
+                                type: 'bar'
+                            },
+                            bar: {
+                                width: {
+                                    ratio: 0.9 // this makes bar width 50% of length between ticks
+                                }
+                            },
+                            legend: {
+                                show: false
+                            },
+                            tooltip: {
+                                show: true
+                            },
+                            axis: {
+                                    x: {show: false},
+                                    y: {show: false}
+                            },
+                            size: {
+                                height: 50
+                            },
+                            point: {
+                                show: false
+                            }
+                        });
                     }
-                });
+
+                    // If this is element with categorical element and hence has dropdown:
+                    // Color first bar, since it's the selected one.
+                    // Might be generalized later.
+                    if (currElement["type"] == "categorical") {
+                        let selectorString = "#" + currElement["histogram"] +  " .c3-shape-0";
+
+                        // If data is available.
+                        if ($(selectorString).length != 0)
+                            d3.select(selectorString).style("fill", "#ed5565");
+                    }
+
+                    if (initToggleButtons) {
+                        // Initialize "Fix value" toggle buttons.
+                        if (currElement["toggleButton"] != null) {
+                            $("#" + currElement["toggleButton"]).lc_switch();
+                            // Change toggle according to definition.
+                            if (currElement["fixedByDefault"])
+                                $("#" + currElement["toggleButton"]).lcs_on();
+                        }
+                    }
+                }
             }
-
-            // If this is element with categorical element and hence has dropdown:
-            // Color first bar, since it's the selected one.
-            // Might be generalized later.
-            if (currElement["type"] == "categorical") {
-                let selectorString = "#" + currElement["histogram"] +  " .c3-shape-0";
-
-                // If data is available.
-                if ($(selectorString).length != 0)
-                    d3.select(selectorString).style("fill", "#ed5565");
-
-            }
-
-            // Initialize "Fix value" toggle buttons.
-            if (currElement["toggleButton"] != null) {
-                $("#" + currElement["toggleButton"]).lc_switch();
-                // Change toggle according to definition.
-                if (currElement["fixedByDefault"])
-                    $("#" + currElement["toggleButton"]).lcs_on();
-            }
-        }
+        });
     });
 }
 
@@ -808,6 +867,7 @@ function initChunkedFileUpload()
                     success: function(html_data) {
                         $("#upload_status").progressbar({value: 100});
                         $("#upload_status_progressLabel").html("Finished.");
+                        location.reload();
                     },
                     contentType: "application/json"
                 });

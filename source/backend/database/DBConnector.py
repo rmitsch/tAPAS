@@ -149,6 +149,38 @@ class DBConnector:
 
         return [row[0] for row in cursor.fetchall()]
 
+    def read_tsne_metadata_in_dataset(self, dataset_name):
+        """
+        Fetches metadata from all t-SNE runs
+        :param dataset_name:
+        :return:
+        """
+        cursor = self.connection.cursor()
+
+        cursor.execute("""
+            select
+                row_to_json(t)
+            from (
+                select
+                    d.name as dataset_name,
+                    t.*,
+                    r.num_words,
+                    r.measure_weight_trustworthiness,
+                    r.measure_weight_continuity,
+                    r.measure_weight_generalization_accuracy,
+                    r.measure_weight_we_information_ratio
+                from
+                    tapas.tsne_models t
+                inner join tapas.datasets d on
+                    d.id = t.id and
+                    d.name = %s
+                inner join tapas.runs r on
+                    r.datasets_id = d.id
+            ) t
+        """, (dataset_name,))
+
+        return [row[0] for row in cursor.fetchall()]
+
     def read_first_run_metadata(self):
         """
         Reads metadata for all first runs in database.
@@ -186,7 +218,7 @@ class DBConnector:
               r.datasets_id = d.id
             inner join tapas.word_vectors wv on
               wv.datasets_id = d.id
-             group by
+            group by
               d.name,
               r.title,
               r.measure_weight_trustworthiness,
@@ -410,7 +442,7 @@ class DBConnector:
 
             cursor.execute("""
                 select
-                    coalesce(max(t.runs_sequence_number), 1)
+                    coalesce(max(t.runs_sequence_number) + 1, 1)
                 from
                     tapas.tsne_models t
                 where
@@ -447,7 +479,7 @@ class DBConnector:
                 tsne_configuration["initMethod"],
                 tsne_configuration["randomState"],
                 tsne_configuration["angle"],
-                sequence_number_in_run + 1,
+                sequence_number_in_run,
                 run_id
             ))
 
@@ -776,11 +808,33 @@ class DBConnector:
 
         cursor.execute("""
             select
-                max(t.runs_sequence_number)
+                coalesce(max(t.runs_sequence_number), 0)
             from
                 tapas.runs r
             inner join tapas.tsne_models t on
                 t.runs_id = r.id
+            where
+                r.title = %s
+        """, (run_title,))
+
+        return cursor.fetchone()[0]
+
+    def read_highest_tsne_sequence_number_with_quality_scores_in_run(self, run_title):
+        """
+        Reads highest t-SNE model sequence number of all models in specified run with calculated quality scores.
+        :param run_title:
+        :return:
+        """
+        cursor = self.connection.cursor()
+
+        cursor.execute("""
+            select
+                coalesce(max(t.runs_sequence_number), 0)
+            from
+                tapas.runs r
+            inner join tapas.tsne_models t on
+                t.runs_id = r.id and
+                t.measure_user_quality is not null
             where
                 r.title = %s
         """, (run_title,))

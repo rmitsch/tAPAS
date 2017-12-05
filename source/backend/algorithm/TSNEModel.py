@@ -14,11 +14,31 @@ class TSNEModel:
 
     # Define possible values for categorical variables.
     CATEGORICAL_VALUES = {
-        'metrics': ["braycurtis", "canberra", "chebyshev", "cityblock", "correlation", "cosine",
+        'metric': ["braycurtis", "canberra", "chebyshev", "cityblock", "correlation", "cosine",
                     "dice", "euclidean", "hamming", "jaccard", "kulsinski", "mahalanobis",
                     "matching", "minkowski", "rogerstanimoto", "russellrao", "seuclidean",
                     "sokalmichener", "sokalsneath", "sqeuclidean", "yule"],
         'init_method': ["random", "PCA"]
+    }
+
+    # Define column names containing information whether parameter is fixed or not.
+    ISFIXED_COLUMN_NAMES = ["is_n_components_fixed", "is_perplexity_fixed", "is_early_exaggeration_fixed",
+                            "is_learning_rate_fixed", "is_n_iter_fixed", "is_min_grad_norm_fixed",
+                            "is_metric_fixed", "is_init_method_fixed", "is_random_state_fixed",
+                            "is_angle_fixed"]
+
+    # Hardcode thresholds for parameter values. Categorical values are represented by indices.
+    PARAMETER_RANGES = {
+        "n_components": (1, 5),
+        "perplexity": (1, 100),
+        "early_exaggeration": (1, 50),
+        "learning_rate": (1, 2000),
+        "n_iter": (1, 10000),
+        "min_grad_norm": (0.0000000001, 0.1),
+        "metric": (0, 20),
+        "init_method": (0, 1),
+        "random_state": (1, 100),
+        "angle": (0.1, 1)
     }
 
     def __init__(self,
