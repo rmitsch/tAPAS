@@ -319,7 +319,10 @@ function createNewRun()
                 });
                 $("#newRun_status").css({'display': 'block'});
                 $("#newRun_status .ui-progressbar-value").css({'background': '#3d4a57'});
-                $("#newRun_status_progressLabel").html("Creating initial t-SNE model.");
+                $("#newRun_status_progressLabel").html("Creating initial t-SNE models.");
+
+                // Denotes number of initial, Sobel-sampled models (including user-defined one).
+                var targetIterationNumber = 10;
 
                 // Create initial t-SNE models.
                 $.ajax({
@@ -327,56 +330,35 @@ function createNewRun()
                     url: "/create_initial_tsne_models",
                     data: JSON.stringify(parameters),
                     success: function(tsne_model_id) {
-//                        var progressCheckID = setInterval(function() {
+                        var progressCheckID = setInterval(function() {
                             // Check how many t-SNE models were already produced.
-//                            $.ajax({
-//                                type: 'GET',
-//                                url: '/get_latest_tnse_model_sequence_number_in_run',
-//                                // applicationType/json leads to bad server response for some reason, so let's use common GET args.
-//                                data: {
-//                                    run_title: parameters.runName
-//                                },
-//                                success: function(response) {
-//                                    let percentage = 5 + (response / targetIterationNumber) / 2.0 * 100;
-//
-//                                    $("#newRun_status").progressbar({value: percentage});
-//                                    $("#newRun_status_progressLabel").html("Creating initial models | " + percentage.toFixed(0) + "%");
-//
-//                                    // If target iteration number reached: Update UI, stop progress listener.
-//                                    if (response == targetIterationNumber) {
-//                                        // Update progress bar.
-//                                        $("#newRun_status").progressbar({value: 55});
-//                                        // Stop progress check.
-//                                        clearInterval(progressCheckID);
+                            $.ajax({
+                                type: 'GET',
+                                url: '/get_latest_tnse_model_sequence_number_with_quality_scores_in_run',
+                                data: {
+                                    run_title: parameters.runName
+                                },
+                                success: function(response) {
+                                    let percentage = 5 + (response / targetIterationNumber) * 95;
 
-                                        // Calculate quality measures.
-                //                            $.ajax({
-                //                                type: "POST",
-                //                                url: "/calculate_quality_measures",
-                //                                data: JSON.stringify({
-                //                                    tsne_model_id: tsne_model_id,
-                //                                    dataset_name: parameters.dataset,
-                //                                    num_words: parameters.numWords
-                //                                }),
-                //                                success: function(html_data) {
-                //                                    $("#newRun_status").progressbar({
-                //                                        value: 100
-                //                                    });
-                //                                    $("#newRun_status_progressLabel").html("Finished.");
-                //                                },
-                //                                contentType: "application/json"
-                //                            });
-//                                    }
-//                                }
-//                            });
-//                        }, 10000);
+                                    $("#newRun_status").progressbar({value: percentage});
+                                    $("#newRun_status_progressLabel").html("Creating initial models | " + percentage.toFixed(0) + "%");
+
+                                    // If target iteration number reached: Update UI, stop progress listener.
+                                    if (response == targetIterationNumber) {
+                                        // Update progress bar.
+                                        $("#newRun_status").progressbar({value: 100});
+                                        // Stop progress check.
+                                        clearInterval(progressCheckID);
+                                        // Reload page.
+                                        location.reload();
+                                    }
+                                }
+                            });
+                        }, 10000);
                 },
                 contentType: "application/json"
             });
-
-            // Expected (and hardcoded): 10 initial, Sobel-sampled models.
-            var targetIterationNumber = 2;
-            // Check progress in DB regularly (every 10 seconds).
 
           },
           contentType: "application/json"

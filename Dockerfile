@@ -27,7 +27,7 @@ RUN apk update && \
 	# git for pulling Multicore-t-SNE from git.
 	apk add git=2.11.3-r0 && \
 	# Install postgres driver.
-	apk add postgresql-dev=9.6.5-r0 && \
+	apk add postgresql-dev=9.6.6-r0 && \
 	# Install python dependencies.
 	pip install -r /tmp/requirements.txt && \
 	# Execute additional setup and clean up build environment.

@@ -2,6 +2,7 @@ from bayes_opt import BayesianOptimization
 from .TSNEModel import TSNEModel
 import pandas
 import sobol_seq
+import copy
 
 
 class BayesianTSNEOptimizer:
@@ -28,7 +29,7 @@ class BayesianTSNEOptimizer:
         # Store latest t-SNE results.
         self.tsne_results = None
 
-    def run(self, num_iterations, kappa=5):
+    def run(self, num_iterations, kappa=8):
         """
         Fetches latest t-SNE model from DB. Collects pickled BO status object, if existent.
         Intermediate t-SNE models are persisted.
@@ -54,6 +55,7 @@ class BayesianTSNEOptimizer:
         initialization_dataframe.drop(TSNEModel.ISFIXED_COLUMN_NAMES, inplace=True, axis=1)
 
         # Create initialization dictionary.
+
         initialization_dict = {
             column_name[3:-6]: initialization_dataframe[column_name[3:-6]].values.tolist()
             for column_name in TSNEModel.ISFIXED_COLUMN_NAMES
@@ -69,7 +71,7 @@ class BayesianTSNEOptimizer:
         ]
 
         # 3. Create BO object.
-        parameter_ranges = TSNEModel.PARAMETER_RANGES
+        parameter_ranges = copy.deepcopy(TSNEModel.PARAMETER_RANGES)
 
         # Drop all fixed parameters' ranges and entries in initialization dictionary.
         for key in self.fixed_parameters:
@@ -186,36 +188,51 @@ class BayesianTSNEOptimizer:
         return aggregated_quality_score
 
     @staticmethod
-    def generate_initial_parameter_sets(self, num_iter=10):
+    def generate_initial_parameter_sets(fixed_parameters, number_of_words_to_use, num_iter=10):
         """
         Generates initial t-SNE parameter samples based on Sobol sequences.
-        :param self:
+        :param fixed_parameters:
+        :param number_of_words_to_use:
         :param num_iter:
         :return: List of dictionaries with valid t-SNE parameter sets.
         """
         parameter_sets = []
-        sobol_numbers = sobol_seq.i4_sobol_generate(10, num_iter)
+
+        # Calculate Sobol sequence numbers.
+        sobol_numbers = sobol_seq.i4_sobol_generate(10 - len(fixed_parameters), num_iter)
+
+        #  Create parameter range dictionary w/o entries for fixed parameters.
+        param_ranges = copy.deepcopy(TSNEModel.PARAMETER_RANGES)
+        for key in fixed_parameters.keys():
+            param_ranges.pop(key, None)
 
         for curr_iter in range(0, num_iter):
             parameter_set = {}
 
-            for param_entry, sobol_number in zip(TSNEModel.PARAMETER_RANGES.items(), sobol_numbers[curr_iter]):
+            for param_entry, sobol_number in zip(param_ranges.items(), sobol_numbers[curr_iter]):
                 param = param_entry[0]
                 param_range = param_entry[1]
 
                 # Categorical values.
-                if param in ("init_method", "metric"):
+                if param in ("init_method", "metric") and param not in fixed_parameters:
                     index = param_range[0] + round((param_range[1] - param_range[0]) * sobol_number)
                     parameter_set[param] = TSNEModel.CATEGORICAL_VALUES[param][int(index)]
 
                 # Numerical values.
-                else:
+                elif param not in fixed_parameters:
                     # Integer values.
                     if param in ["n_components", "random_state", "n_iter"]:
-                        parameter_set[param] = param_range[0] + round((param_range[1] - param_range[0]) * sobol_number)
+                        parameter_set[param] = int(
+                            param_range[0] + round((param_range[1] - param_range[0]) * sobol_number)
+                        )
                     # Float values.
                     else:
                         parameter_set[param] = param_range[0] + (param_range[1] - param_range[0]) * sobol_number
-            parameter_sets.append(parameter_set)
+
+            # Transfer number of words (always fixed).
+            parameter_set["num_words"] = number_of_words_to_use
+
+            # Append merged parameter set including fixed parameters.
+            parameter_sets.append({**parameter_set, **fixed_parameters})
 
         return parameter_sets

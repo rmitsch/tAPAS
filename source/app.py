@@ -15,7 +15,6 @@ from backend.algorithm.QVEC import QVECConfiguration
 from backend.algorithm.TSNEModel import TSNEModel
 from backend.algorithm.WordEmbeddingClusterer import WordEmbeddingClusterer
 from backend.algorithm.BayesianTSNEOptimizer import BayesianTSNEOptimizer
-import sobol_seq
 
 
 def init_flask_app():
@@ -209,37 +208,30 @@ def create_initial_tsne_models():
     dataset_name = initial_tsne_parameters["dataset"]
     num_words_to_use = initial_tsne_parameters["numWords"]
 
-    # Fetch word embedding from DB, if not done yet.
+    # 0. Fetch word embedding from DB, if not done yet.
     fetch_word_embedding_for_dataset(app=app, dataset_name=dataset_name, invalidate_cache=False)
     limited_word_embedding = app.config["DATA"]["word_embeddings"][dataset_name].head(num_words_to_use)
 
-    # Generate t-SNE parameter sets.
-    tsne_parameter_sets = [initial_tsne_parameters]
-    tsne_parameter_sets.extend(BayesianTSNEOptimizer.generate_initial_parameter_sets(fixed_parameters, 9))
+    # 1. Generate t-SNE parameter sets.
+    tsne_parameter_sets = [TSNEModel.translate_parameter_dict_from_frontend_to_backend(initial_tsne_parameters)]
+    tsne_parameter_sets.extend(BayesianTSNEOptimizer.generate_initial_parameter_sets(
+        TSNEModel.extract_fixed_parameters(initial_tsne_parameters), initial_tsne_parameters["numWords"], 9)
+    )
 
-    print(initial_tsne_parameters)
-    print(dataset_name)
-    print(num_words_to_use)
+    # 2. Generate, run and persist t-SNE models for all configurations.
+    # Execute as seperate process to allow intermediated requests to server.
+    p = Process(target=TSNEModel.run_and_persist_models_as_process,
+                args=(tsne_parameter_sets,
+                      limited_word_embedding,
+                      app.config["DB_CONNECTOR"],
+                      initial_tsne_parameters["runName"]))
+    p.start()
 
+    # NEXT STEPS: xxx
+    #     6. Think about additional vis. next to quality pane.
+    #     7. PAELLA: Draw mockup.
 
-    NEXT STEPS:
-        1. Consider fixed values in .generate_initial_parameter_sets(). Test.
-        2. Produces t-SNE models for all parameter values.
-        3. Frontend: Check progress.
-        4. Determine quality for all t-SNE models.
-        5. Frontend: Extend progress check to model quality checking.
-        6. Think about additional vis. next to quality pane.
-        7. PAELLA:
-
-
-    # 1. Generate t-SNE model.
-    # initial_tsne_model = TSNEModel.generate_instance_from_dict(initial_tsne_parameters)
-    # initial_tsne_model.run(word_embedding=limited_word_embedding)
-
-    # 2. Persist t-SNE model and results.
-    # tsne_model_id = initial_tsne_model.persist(app.config["DB_CONNECTOR"], initial_tsne_parameters["runName"])
-
-    return "4" # str(tsne_model_id)
+    return "200"
 
 
 @app.route('/calculate_quality_measures', methods=["POST"])

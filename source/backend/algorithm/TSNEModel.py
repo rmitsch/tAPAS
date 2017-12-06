@@ -15,9 +15,9 @@ class TSNEModel:
     # Define possible values for categorical variables.
     CATEGORICAL_VALUES = {
         'metric': ["braycurtis", "canberra", "chebyshev", "cityblock", "correlation", "cosine",
-                    "dice", "euclidean", "hamming", "jaccard", "kulsinski", "mahalanobis",
-                    "matching", "minkowski", "rogerstanimoto", "russellrao", "seuclidean",
-                    "sokalmichener", "sokalsneath", "sqeuclidean", "yule"],
+                   "dice", "euclidean", "hamming", "jaccard", "kulsinski", "mahalanobis",
+                   "matching", "minkowski", "rogerstanimoto", "russellrao", "seuclidean",
+                   "sokalmichener", "sokalsneath", "sqeuclidean", "yule"],
         'init_method': ["random", "PCA"]
     }
 
@@ -39,6 +39,21 @@ class TSNEModel:
         "init_method": (0, 1),
         "random_state": (1, 100),
         "angle": (0.1, 1)
+    }
+
+    # A testament to bad design choices.
+    PROPERTY_TRANSLATIONS_FRONTEND_TO_BACKEND = {
+        "numDimensions": "n_components",
+        "perplexity": "perplexity",
+        "earlyExaggeration": "early_exaggeration",
+        "learningRate": "learning_rate",
+        "numIterations": "n_iter",
+        "minGradNorm": "min_grad_norm",
+        "metric": "metric",
+        "initMethod": "init_method",
+        "randomState": "random_state",
+        "angle": "angle",
+        "numWords": "num_words"
     }
 
     def __init__(self,
@@ -230,3 +245,86 @@ class TSNEModel:
             )
 
         return tsne_model_id
+
+    @staticmethod
+    def extract_fixed_parameters(parameters):
+        """
+        Accepts t-SNE initialization dictionary (as accepted by TSNEModel.generate_instance_from_dict()) and returns a
+        dictionary only containing fixed parameters.
+        :param parameters:
+        :return:
+        """
+        fixed_parameter_dictionary = {}
+
+        for key, value in parameters.items():
+            if "fixed" in key and value is True:
+                # Get parameter by removing "is_" and "_fixed" from is_fixed key.
+                param_key = key[3:-6]
+                fixed_parameter_dictionary[
+                    TSNEModel.PROPERTY_TRANSLATIONS_FRONTEND_TO_BACKEND[param_key]
+                ] = parameters[param_key]
+
+        return fixed_parameter_dictionary
+
+    @staticmethod
+    def translate_parameter_dict_from_frontend_to_backend(parameters):
+        """
+        Translates keys in parameter dictionary from frontend camel case to backend underscore case. 'Cause using the
+        same notation would have been too easy.
+        Keeps columns not mentioned in TSNEModel.PROPERTY_TRANSLATIONS_FRONTEND_TO_BACKEND.
+        :param parameters:
+        :return:
+        """
+        translated_parameters = {}
+
+        for key, value in parameters.items():
+            if key in TSNEModel.PROPERTY_TRANSLATIONS_FRONTEND_TO_BACKEND:
+                translated_parameters[
+                    TSNEModel.PROPERTY_TRANSLATIONS_FRONTEND_TO_BACKEND[key]
+                ] = value
+
+            else:
+                translated_parameters[key] = value
+
+        return translated_parameters
+
+    @staticmethod
+    def run_and_persist_models_as_process(tsne_parameter_sets, word_embedding, db_connector, run_name):
+        """
+        Auxiliary method chaining together TSNEModel.run() and TSNEModel.persist().
+        Both steps are executed in one common process to allow request the web server for progress information.
+        :param tsne_parameter_sets:
+        :param word_embedding:
+        :param db_connector:
+        :param run_name:
+        :return:
+        """
+
+        for i, tsne_parameter_set in enumerate(tsne_parameter_sets):
+            # 1. Generate.
+            tsne_model = TSNEModel.generate_instance_from_dict_with_db_names(tsne_parameter_set)
+
+            # 2. Run t-SNE.
+            tsne_model.run(word_embedding=word_embedding)
+
+            # 3. Persist results.
+            tsne_model_id = tsne_model.persist(db_connector=db_connector, run_name=run_name)
+
+            # 4. Calculate quality measures.
+            # Load t-SNE results, calculate quality measures.
+            quality_measures = TSNEModel.calculate_quality_measures(
+                word_embedding=word_embedding,
+                tsne_results=db_connector.read_tsne_results(tsne_model_id=tsne_model_id)
+            )
+
+            # 5. Store results for quality measures in DB.
+            db_connector.set_tsne_quality_scores(
+                trustworthiness=quality_measures["trustworthiness"],
+                continuity=quality_measures["continuity"],
+                generalization_accuracy=quality_measures["generalization_accuracy"],
+                qvec_score=quality_measures["qvec"],
+                tsne_id=tsne_model_id
+            )
+
+
+

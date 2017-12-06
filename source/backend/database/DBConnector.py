@@ -361,7 +361,6 @@ class DBConnector:
         """
         cursor = self.connection.cursor()
 
-        # Get word vector data and store it in dataframe.
         cursor.execute("select "
                        "    w.id, "
                        "    w.word,"

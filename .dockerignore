@@ -37,3 +37,14 @@ logs
 *.npz
 *.hdf5
 *.hd5
+
+# Pycharm files.
+source/.idea/
+.idea/
+
+# Virtual python environment.
+py3env
+
+# Exclude local docker volumes.
+/setup/tapasPostgresVolume
+/setup/tapasPostgresVolume/*
