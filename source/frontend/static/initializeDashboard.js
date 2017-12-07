@@ -442,14 +442,14 @@ function renderHyperparameterPanel(runMetadata, runName, currentTSNESequenceNumb
 }
 
 /**
- * Renders line chart in quality metrics panel.
+ * Renders quality metrics line chart.
  * Assumes exactly one run in the data and that models are ordered by sequence number ascendingly.
  * @param runMetadata
  * @param runName
  * @param currentTSNESequenceNumber
  * @param currentTSNEIndex
  */
-function renderQualityMetricsPane(runMetadata, runName, currentTSNESequenceNumber, currentTSNEIndex)
+function renderQualityMetricsLinechart(runMetadata, runName, currentTSNESequenceNumber, currentTSNEIndex)
 {
     // Store metric data by measures first, run title second. Actual values are stored in array (same
     // sequence as the order in which t-SNE models were generated).
@@ -464,7 +464,6 @@ function renderQualityMetricsPane(runMetadata, runName, currentTSNESequenceNumbe
     // Collect metrics.
     for (let i = 0; i < runMetadata.length; i++) {
         let currMetrics = runMetadata[i];
-        console.log(i);
 
         // Make sure we have quality metrics for this object.
         if (currMetrics.measure_trustworthiness != null &&
@@ -496,7 +495,12 @@ function renderQualityMetricsPane(runMetadata, runName, currentTSNESequenceNumbe
             ],
             colors: {
             },
-            type: 'step'
+            type: 'line'
+        },
+        grid: {
+            y: {
+                show: true
+            }
         },
         legend: {
             show: true,
@@ -516,17 +520,100 @@ function renderQualityMetricsPane(runMetadata, runName, currentTSNESequenceNumbe
             },
             y: {
                 show: true,
-                max: 2,
+                max: 1.5,
                 min: 0,
                 type: 'number',
                 tick: {
-                    values: [0, 1]
+                    values: [0, 0.5, 1, 1.5]
                 }
             }
         },
         size: {
-            width: ($('#qualityMetricsLinechart').width()) * 0.95,
+            width: ($('#qualityMetricsLinechart').width()) * 1,
             height: ($('#qualityMetricsLinechart').height()) * 0.92
+        },
+        point: {
+            show: true
+        }
+    });
+}
+
+/**
+ * Renders convergence line chart in quality metrics panel.
+ * Assumes exactly one run in the data and that models are ordered by sequence number ascendingly.
+ * @param parameterFluctuationData
+ * @param runName
+ * @param currentTSNESequenceNumber
+ * @param currentTSNEIndex
+ */
+function renderConvergenceLinechart(parameterFluctuationData, runName, currentTSNESequenceNumber, currentTSNEIndex)
+{
+    // Store metric data by measures first, run title second. Actual values are stored in array (same
+    // sequence as the order in which t-SNE models were generated).
+    let paramFluctuationSeries = {};
+    for (let key in chartElements.hyperparameters) {
+        paramFluctuationSeries[key] = [chartElements.hyperparameters[key].displayName];
+    }
+
+    let categories = [];
+    // Collect metrics.
+    for (let i = 0; i < parameterFluctuationData.length; i++) {
+        let currRecord = parameterFluctuationData[i];
+        // Get fluctuation values for all parameters.
+        for (let key in paramFluctuationSeries) {
+            let paramDBName = chartElements.hyperparameters[key].attributeNameInDB;
+            paramFluctuationSeries[key].push(currRecord[paramDBName]);
+        }
+
+        // Append category.
+        categories.push("Model #" + (i + 1));
+    }
+
+
+    // Generate quality metrics line chart.
+    var chart = c3.generate({
+        bindto: "#convergenceLinechart",
+        data: {
+            // Cast dictionary of value arrays to array of value arrays.
+            columns: Object.getOwnPropertyNames(paramFluctuationSeries).map(
+                function(e) { return paramFluctuationSeries[e]; }
+            ),
+            type: 'line'
+        },
+        grid: {
+            y: {
+                show: true
+            }
+        },
+        legend: {
+            show: true,
+            position: 'right'
+        },
+        tooltip: {
+            show: true
+        },
+        axis: {
+            x: {
+                show: true,
+                tick: {
+                    count: 4
+                },
+                type: 'category',
+                categories: categories
+            },
+            y: {
+                show: true,
+                max: 1.5,
+                min: 0,
+                type: 'number',
+                tick: {
+                    values: [0, 0.5, 1, 1.5]
+                }
+            }
+        },
+        size: {
+            width: ($('#convergenceLinechart').width()) * 1,
+            height: ($('#convergenceLinechart').height()) * 0.92
         },
         point: {
             show: true
@@ -874,7 +961,6 @@ function renderRunData(runName, numberOfWordsToDisplayInMap)
             // Find index at which current t-SNE model can be found in response dataset.
             var currentTSNEIndex = -1;
             for (let i = 0; i < metadataResponse.length; i++) {
-                console.log(metadataResponse[i].runs_sequence_number);
                 if (metadataResponse[i].title == runName &&
                     currentTSNESequenceNumber < metadataResponse[i].runs_sequence_number) {
                     currentTSNESequenceNumber =  metadataResponse[i].runs_sequence_number;
@@ -892,29 +978,47 @@ function renderRunData(runName, numberOfWordsToDisplayInMap)
             });
 
             // 2. Load results for latest t-SNE model in run.
-            $.ajax({
-                type: 'GET',
-                url: '/fetch_latest_tsne_results_for_run',
-                // applicationType/json leads to bad server response for some reason, so let's use common GET args.
-                data: {
-                    run_title: runName
-                },
-                success: function(response) {
-                    window.TSNE_RESULTS = JSON.parse(response);
+            var ajax_responses = {};
+            $.when(
+                // Get latest t-SNE results.
+                $.ajax({
+                    type: 'GET',
+                    url: '/fetch_latest_tsne_results_for_run',
+                    data: { run_title: runName },
+                    success: function(response) {
+                        ajax_responses["latest_tsne_results_for_run"] = JSON.parse(response);
+                    }
+                }),
 
-                    $("#runopt_qualitySlider").data("ionRangeSlider").update({
-                        from: metadataResponse[currentTSNEIndex].measure_user_quality
-                    });
+                // Get t-SNE model parameter fluctuation.
+                $.ajax({
+                    type: 'GET',
+                    url: '/get_tsne_parameter_fluctuation_in_run',
+                    data: { run_title: runName },
+                    success: function(response) {
+                        ajax_responses["parameter_fluctuation"] = response;
+                    }
+                })
+            ).then(function() {
+                // Render page once everything is loaded.
+                window.TSNE_RESULTS = ajax_responses["latest_tsne_results_for_run"];
 
-                    // Show dashboard.
-                    $("#dashboard").css("display", "block");
-                    // Render hyperparameter histograms.
-                    renderHyperparameterPanel(metadataResponse, runName, currentTSNESequenceNumber, currentTSNEIndex);
-                    // Render quality metrics pane.
-                    renderQualityMetricsPane(metadataResponse, runName, currentTSNESequenceNumber, currentTSNEIndex);
-                    // Render map for word coordinates.
-                    renderMap(window.TSNE_RESULTS, numberOfWordsToDisplayInMap);
-                }
+                $("#runopt_qualitySlider").data("ionRangeSlider").update({
+                    from: metadataResponse[currentTSNEIndex].measure_user_quality
+                });
+
+                // Show dashboard.
+                $("#dashboard").css("display", "block");
+
+                // Render hyperparameter histograms.
+                renderHyperparameterPanel(metadataResponse, runName, currentTSNESequenceNumber, currentTSNEIndex);
+
+                // Render quality metrics pane.
+                renderQualityMetricsLinechart(metadataResponse, runName, currentTSNESequenceNumber, currentTSNEIndex);
+                renderConvergenceLinechart(ajax_responses["parameter_fluctuation"], runName, currentTSNESequenceNumber, currentTSNEIndex);
+
+                // Render map for word coordinates.
+                renderMap(window.TSNE_RESULTS, numberOfWordsToDisplayInMap);
             });
         }
     });

@@ -3,7 +3,14 @@
     <div id="runopt_wvScatterplot"></div>
 </div>
 <div id="qualityPane">
-    <div id="qualityMetricsLinechart"></div>
+    <div class="qualityChartContainer" id="parameterConvergenceChartContainer">
+        <div>Parameter convergence</div>
+        <div id="convergenceLinechart"></div>
+    </div>
+    <div class="qualityChartContainer">
+        <div>t-SNE quality metrics</div>
+        <div id="qualityMetricsLinechart"></div>
+    </div>
 </div>
 <div id="queryField">
     <input id="queryFieldInput" placeholder="Search for word" type="text" />

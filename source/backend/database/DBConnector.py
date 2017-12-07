@@ -151,7 +151,7 @@ class DBConnector:
 
     def read_tsne_metadata_in_dataset(self, dataset_name):
         """
-        Fetches metadata from all t-SNE runs
+        Fetches metadata from all t-SNE models in all runs in specified dataset.
         :param dataset_name:
         :return:
         """
@@ -171,13 +171,45 @@ class DBConnector:
                     r.measure_weight_we_information_ratio
                 from
                     tapas.tsne_models t
-                inner join tapas.datasets d on
-                    d.id = t.id and
-                    d.name = %s
                 inner join tapas.runs r on
-                    r.datasets_id = d.id
+                    r.id = t.runs_id
+                inner join tapas.datasets d on
+                    d.id = r.datasets_id and
+                    d.name = %s
             ) t
         """, (dataset_name,))
+
+        return [row[0] for row in cursor.fetchall()]
+
+    def read_tsne_metadata_in_run(self, run_name):
+        """
+        Fetches metadata from all t-SNE models in specified run.
+        :param run_name:
+        :return:
+        """
+        cursor = self.connection.cursor()
+
+        cursor.execute("""
+            select
+                row_to_json(t)
+            from (
+                select
+                    d.name as dataset_name,
+                    t.*,
+                    r.num_words,
+                    r.measure_weight_trustworthiness,
+                    r.measure_weight_continuity,
+                    r.measure_weight_generalization_accuracy,
+                    r.measure_weight_we_information_ratio
+                from
+                    tapas.tsne_models t
+                inner join tapas.runs r on
+                    r.id = t.runs_id and
+                    r.title = %s
+                inner join tapas.datasets d on
+                    d.id = r.datasets_id
+            ) t
+        """, (run_name,))
 
         return [row[0] for row in cursor.fetchall()]
 

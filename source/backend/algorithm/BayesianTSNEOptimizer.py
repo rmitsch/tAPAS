@@ -29,7 +29,7 @@ class BayesianTSNEOptimizer:
         # Store latest t-SNE results.
         self.tsne_results = None
 
-    def run(self, num_iterations, kappa=8):
+    def run(self, num_iterations, kappa=10):
         """
         Fetches latest t-SNE model from DB. Collects pickled BO status object, if existent.
         Intermediate t-SNE models are persisted.
@@ -72,6 +72,8 @@ class BayesianTSNEOptimizer:
 
         # 3. Create BO object.
         parameter_ranges = copy.deepcopy(TSNEModel.PARAMETER_RANGES)
+        # Update key for min. gradient norm, since for whatever reason BO optimizer wrecks this number.
+        parameter_ranges["min_grad_norm"] = (-10, -7)
 
         # Drop all fixed parameters' ranges and entries in initialization dictionary.
         for key in self.fixed_parameters:
@@ -154,6 +156,9 @@ class BayesianTSNEOptimizer:
         ################################
         # 2. Calculate t-SNE model.
         ################################
+
+        # Update min. gradient norm.
+        parameters["min_grad_norm"] = pow(10, parameters["min_grad_norm"])
 
         tsne_model = TSNEModel.generate_instance_from_dict_with_db_names(parameters)
         self.tsne_results = tsne_model.run(self.word_embedding)

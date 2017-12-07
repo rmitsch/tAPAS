@@ -9,7 +9,7 @@
 }
 
 #hyperparamPane {
-    height: 73%;
+    height: 60%;
     width: 29%;
     display: inline-block;
     padding-left: 10px;
@@ -21,7 +21,7 @@
 #map {
     display: inline-block;
     float: right;
-    height: 73%;
+    height: 60%;
     width: calc(70% - 1px);
 }
 
@@ -29,7 +29,7 @@
     display: block;
     position: relative;
     width: 100%;
-    height: 25%;
+    height: 37%;
     background-color: #fff;
     border-top-color: #3d4a57;
     border-top-style: solid;
@@ -174,10 +174,30 @@ div.runopt_evalBoxSliderLabel {
     vertical-align: middle;
 }
 
+div.qualityChartContainer {
+    display: inline-block;
+    position: relative;
+    vertical-align: top;
+    margin-top: 5px;
+    width: 44%;
+    height: 100%;
+}
+
+#parameterConvergenceChartContainer {
+    margin-top: 10px;
+    width: 54%;
+    border-right-color: #3d4a57;
+    border-right-style: solid;
+}
+
 #qualityMetricsLinechart {
     margin-top: 5px;
-    width: 600px;
-    height: 100%;
+    height: calc(100% - 25px);
+}
+
+#convergenceLinechart {
+    margin-top: 5px;
+    height: calc(100% - 25px);
 }
 
 #runopt_wvScatterplot {

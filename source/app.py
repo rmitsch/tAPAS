@@ -334,5 +334,33 @@ def get_latest_tnse_model_sequence_number_with_quality_scores_in_run():
     )
 
 
+@app.route('/get_tsne_parameter_fluctuation_in_run', methods=["GET"])
+def get_tsne_parameter_fluctuation_in_run():
+    """
+    Reads and returns highest t-SNE sequence number in specified run.
+    :return:
+    """
+    # Fetch t-SNE metadata for htis run.
+    res = app.config["DB_CONNECTOR"].read_tsne_metadata_in_run(request.args["run_title"])
+
+    # Iterate over results, calculate relative fluctuation.
+    for i in range(len(res) - 1, -1, -1):
+        for key in res[i]:
+            if i > 0 and key in TSNEModel.PARAMETER_RANGES:
+                # Categorical variables: Use 1 if same value is used and 0 otherwise.
+                if key in TSNEModel.CATEGORICAL_VALUES:
+                    res[i][key] = 0 if res[i][key] == res[i - 1][key] else 1
+                # Numerical variables: Calculate fluctuation as float.
+                else:
+                    # Calculate fluctuation as percentage of the hardcoded parameter range.
+                    res[i][key] = float(abs(res[i][key] - res[i - 1][key])) / \
+                                      (TSNEModel.PARAMETER_RANGES[key][1] - TSNEModel.PARAMETER_RANGES[key][0])
+            # If first index == 0 (e. g. this is the first model's parameter set): Set 1 for one values.
+            elif key in TSNEModel.PARAMETER_RANGES:
+                res[i][key] = 1
+
+    return jsonify(res)
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=7182, debug=True)
