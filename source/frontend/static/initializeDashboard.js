@@ -531,7 +531,7 @@ function renderQualityMetricsLinechart(runMetadata, runName, currentTSNESequence
         },
         size: {
             width: ($('#qualityMetricsLinechart').width()) * 1,
-            height: ($('#qualityMetricsLinechart').height()) * 0.92
+            height: ($('#qualityMetricsLinechart').height()) * 1
         },
         point: {
             show: true
@@ -553,7 +553,7 @@ function renderConvergenceLinechart(parameterFluctuationData, runName, currentTS
     // sequence as the order in which t-SNE models were generated).
     let paramFluctuationSeries = {};
     for (let key in chartElements.hyperparameters) {
-        paramFluctuationSeries[key] = [chartElements.hyperparameters[key].displayName];
+        paramFluctuationSeries[key] = ["Δ " + chartElements.hyperparameters[key].displayName];
     }
 
     let categories = [];
@@ -614,7 +614,7 @@ function renderConvergenceLinechart(parameterFluctuationData, runName, currentTS
         },
         size: {
             width: ($('#convergenceLinechart').width()) * 1,
-            height: ($('#convergenceLinechart').height()) * 0.92
+            height: ($('#convergenceLinechart').height()) * 1
         },
         point: {
             show: true

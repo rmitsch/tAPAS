@@ -9,7 +9,7 @@
 }
 
 #hyperparamPane {
-    height: calc(60% - 10px);
+    height: calc(58% - 10px);
     width: 29%;
     display: inline-block;
     padding-left: 10px;
@@ -22,7 +22,7 @@
 #map {
     display: inline-block;
     float: right;
-    height: 60%;
+    height: calc(58% - 10px);
     width: calc(70% - 1px);
 }
 
@@ -30,7 +30,7 @@
     display: block;
     position: relative;
     width: 100%;
-    height: 37%;
+    height: 39%;
     background-color: #fff;
     border-top-color: #3d4a57;
     border-top-style: solid;
@@ -187,7 +187,7 @@ div.qualityChartContainer {
 }
 
 #parameterConvergenceChartContainer {
-    margin-top: 10px;
+    margin-top: 5px;
     vertical-align: middle;
     width: 54%;
     border-right-color: #3d4a57;
@@ -195,13 +195,13 @@ div.qualityChartContainer {
 }
 
 #qualityMetricsLinechart {
-    margin-top: 5px;
-    height: calc(100% - 25px);
+    margin-top: 0px;
+    height: calc(100% - 20px);
 }
 
 #convergenceLinechart {
-    margin-top: 5px;
-    height: calc(100% - 25px);
+    margin-top: 0px;
+    height: calc(100% - 20px);
 }
 
 #runopt_wvScatterplot {
