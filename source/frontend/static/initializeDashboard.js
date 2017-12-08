@@ -406,7 +406,8 @@ function renderHyperparameterPanel(runMetadata, runName, currentTSNESequenceNumb
                         y: {show: false}
                     },
                     size: {
-                        width: ($('#hyperparamPane').width() * 0.4)
+                        width: ($('#hyperparamPane').width() * 0.4),
+                        height: ($('#' + currElement.histogram).height() - 10),
                     },
                     point: {
                         show: true
