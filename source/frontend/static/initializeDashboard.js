@@ -534,7 +534,7 @@ function renderQualityMetricsLinechart(runMetadata, runName, currentTSNESequence
             height: ($('#qualityMetricsLinechart').height()) * 1
         },
         point: {
-            show: true
+            show: false
         }
     });
 }
@@ -617,7 +617,7 @@ function renderConvergenceLinechart(parameterFluctuationData, runName, currentTS
             height: ($('#convergenceLinechart').height()) * 1
         },
         point: {
-            show: true
+            show: false
         }
     });
 }

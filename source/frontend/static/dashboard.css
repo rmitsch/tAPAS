@@ -180,6 +180,7 @@ div.qualityChartContainer {
     position: relative;
     vertical-align: top;
     margin-top: 5px;
+    padding-top: 5px;
     width: 44%;
     height: 100%;
 }
@@ -190,7 +191,6 @@ div.qualityChartContainer {
     width: 54%;
     border-right-color: #3d4a57;
     border-right-style: solid;
-    padding-top: 5px;
 }
 
 #qualityMetricsLinechart {

@@ -17,6 +17,7 @@ from backend.algorithm.BayesianTSNEOptimizer import BayesianTSNEOptimizer
 from flask import jsonify
 import pandas
 import sobol_seq
+import multiprocessing
 
 db_connector = Utils.connect_to_database(False)
 
@@ -24,13 +25,15 @@ db_connector = Utils.connect_to_database(False)
 # db_connector.read_metadata_for_run(run_title="completerun")
 
 
-tsne_model_id = 13
+tsne_model_id = 37
 word_embedding = db_connector.read_word_vectors_for_dataset("wiki_small.en.vec").head(5000)
 tsne_results = db_connector.read_tsne_results(tsne_model_id=tsne_model_id)
 # word_embedding_small = word_embedding.head(n=1000)
 #
-# stacked_wordvectors = numpy.stack(word_embedding['values'].values, axis=0)
+stacked_wordvectors = numpy.stack(word_embedding['values'].values, axis=0)
 
+
+# print(numpy.sum(bla[0]))
 
 
 
@@ -41,44 +44,51 @@ tsne_results = db_connector.read_tsne_results(tsne_model_id=tsne_model_id)
 # print(numpy.array(blub))
 # print(pandas.DataFrame(numpy.array(blub)).to_json(orient="index"))
 
-# First 10 Sobol-sets for 10 dimensions.
-# num_dim = 10
-# num_iter = 10
-# parameter_sets = []
-# sobol_numbers = sobol_seq.i4_sobol_generate(num_dim, num_iter)
+# coranking_matrix = None
 #
-# for curr_iter in range(0, num_iter):
-#     parameter_set = {}
+# # 2. Calculate coranking matrix.
+# word_embedding_vector_array = numpy.stack(word_embedding["values"].values, axis=0)
+# tsne_model_vector_array = numpy.stack(tsne_results["values"].values, axis=0)
+# coranking_matrix = coranking.coranking_matrix(word_embedding_vector_array, tsne_model_vector_array)
+# cont = None
+# trust = None
 #
-#     for param_entry, sobol_number in zip(TSNEModel.PARAMETER_RANGES.items(), sobol_numbers[curr_iter]):
-#         param = param_entry[0]
-#         param_range = param_entry[1]
 #
-#         # Categorical values.
-#         if param in ("init_method", "metric"):
-#             index = param_range[0] + round((param_range[1] - param_range[0]) * sobol_number)
-#             parameter_set[param] = TSNEModel.CATEGORICAL_VALUES[param][int(index)]
+# def calc_continuity():
+#     global coranking_matrix
+#     global cont
+#     cont = continuity(coranking_matrix.astype(numpy.float16), min_k=1, max_k=100)
 #
-#         # Numerical values.
-#         else:
-#             # Integer values.
-#             if param in ["n_components", "random_state", "n_iter"]:
-#                 parameter_set[param] = param_range[0] + round((param_range[1] - param_range[0]) * sobol_number)
-#             # Float values.
-#             else:
-#                 parameter_set[param] = param_range[0] + (param_range[1] - param_range[0]) * sobol_number
-#     parameter_sets.append(parameter_set)
+#
+# def calc_trustworthiness():
+#     global coranking_matrix
+#     global trust
+#     trust = trustworthiness(coranking_matrix.astype(numpy.float16), min_k=1, max_k=100)
+#
+#
+# # 3. Calculate continuity.
+# cont_process = multiprocessing.Process(target=calc_continuity(), args=())
+# # 4. Calculate trustworthiness.
+# trust_process = multiprocessing.Process(target=calc_trustworthiness(), args=())
+# cont_process.start()
+# trust_process.start()
+# cont_process.join()
+# trust_process.join()
+#
+# print(trust, cont)
+#
+# fig, ax = plt.subplots()
+# rects1 = plt.bar(numpy.arange(len(trust)),  trust, 0.35, color='r', label="trust")
+# rects2 = plt.bar(numpy.arange(len(cont)) + 0.35, cont, 0.35, color='b', label="cont")
+# plt.legend()
+# plt.show()
 
-
-quality_measures = TSNEModel.calculate_quality_measures(
-                word_embedding=word_embedding,
-                tsne_results=db_connector.read_tsne_results(tsne_model_id=tsne_model_id)
-            )
+qm = TSNEModel.calculate_quality_measures(word_embedding, tsne_results)
 
 db_connector.set_tsne_quality_scores(
-                trustworthiness=quality_measures["trustworthiness"],
-                continuity=quality_measures["continuity"],
-                generalization_accuracy=quality_measures["generalization_accuracy"],
-                qvec_score=quality_measures["qvec"],
+                trustworthiness=qm["trustworthiness"],
+                continuity=qm["continuity"],
+                generalization_accuracy=qm["generalization_accuracy"],
+                qvec_score=qm["qvec"],
                 tsne_id=tsne_model_id
             )

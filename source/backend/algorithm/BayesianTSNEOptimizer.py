@@ -88,7 +88,8 @@ class BayesianTSNEOptimizer:
         bo.initialize(initialization_dict)
 
         # 4. Execute optimization.
-        bo.maximize(init_points=1, n_iter=(num_iterations - 1), kappa=kappa, acq='ucb')
+        num_init_points = max(int(num_iterations / 4), 1)
+        bo.maximize(init_points=num_init_points, n_iter=(num_iterations - num_init_points), kappa=kappa, acq='ucb')
 
     def _update_parameter_dictionary(self, run_iter_metadata, is_fixed):
         """

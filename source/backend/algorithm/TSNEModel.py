@@ -2,9 +2,10 @@ from MulticoreTSNE import MulticoreTSNE as MulticoreTSNE
 import numpy
 from .WordEmbeddingClusterer import WordEmbeddingClusterer
 from backend.algorithm.QVEC import QVECConfiguration
-import coranking
 from coranking.metrics import trustworthiness, continuity
 import sklearn.neighbors
+import sklearn.preprocessing
+from scipy.spatial import distance
 
 
 class TSNEModel:
@@ -106,7 +107,7 @@ class TSNEModel:
         self.word_embedding = word_embedding
         word_vector_data = numpy.stack(word_embedding['values'].values, axis=0)
 
-        # Consider num_words!
+        # Initialize t-SNE instance.
         tsne = MulticoreTSNE(
             n_components=self.num_dimensions,
             perplexity=self.perplexity,
@@ -121,7 +122,11 @@ class TSNEModel:
             n_jobs=2)
 
         # Train TSNE on gensim's model.
-        self.tsne_results = tsne.fit_transform(word_vector_data)
+        # Note: Since MulticoreTSNE doesn't support metrics other than Euclidean, we normalize our vectors to an unit
+        # norm so that the Euclidean distance yields results/ordering more similar to the cosine similarity.
+        self.tsne_results = tsne.fit_transform(
+            sklearn.preprocessing.normalize(word_vector_data, axis=1, norm='l2')
+        )
 
         return self.tsne_results
 
@@ -146,7 +151,6 @@ class TSNEModel:
             metric=param_dict["metric"],
             init_method=param_dict["initMethod"]
         )
-
 
     @staticmethod
     def generate_instance_from_dict_with_db_names(param_dict):
@@ -185,7 +189,9 @@ class TSNEModel:
         # 2. Calculate coranking matrix.
         word_embedding_vector_array = numpy.stack(word_embedding["values"].values, axis=0)
         tsne_model_vector_array = numpy.stack(tsne_results["values"].values, axis=0)
-        coranking_matrix = coranking.coranking_matrix(word_embedding_vector_array, tsne_model_vector_array)
+        coranking_matrix = TSNEModel.cosine_similarity_coranking_matrix(
+            word_embedding_vector_array, tsne_model_vector_array
+        )
 
         # 3. Calculate trustworthiness.
         trust = trustworthiness(coranking_matrix.astype(numpy.float16), min_k=99, max_k=100)
@@ -326,5 +332,34 @@ class TSNEModel:
                 tsne_id=tsne_model_id
             )
 
+    @staticmethod
+    def cosine_similarity_coranking_matrix(high_data, low_data):
+        """
+        Generate a co-ranking matrix from two data frames of high and low
+        dimensional data based on their cosine similarity.
+        Uses code from https://github.com/samueljackson92/coranking/. Only adaption: Utilizing cosine similarity instead
+        of l2
+        :param high_data: DataFrame containing the higher dimensional data.
+        :param low_data: DataFrame containing the lower dimensional data.
+        :returns: the co-ranking matrix of the two data sets.
+        """
+        n, m = high_data.shape
+        high_distance = TSNEModel.pairwise_distances(high_data)
+        low_distance = TSNEModel.pairwise_distances(low_data)
+
+        high_ranking = high_distance.argsort(axis=1).argsort(axis=1)
+        low_ranking = low_distance.argsort(axis=1).argsort(axis=1)
+
+        Q, xedges, yedges = numpy.histogram2d(high_ranking.flatten(),
+                                              low_ranking.flatten(),
+                                              bins=n)
+
+        Q = Q[1:, 1:]  # remove rankings which correspond to themselves
+
+        return Q
+
+    @staticmethod
+    def pairwise_distances(X):
+        return distance.squareform(distance.pdist(X, 'cosine'))
 
 

@@ -227,10 +227,6 @@ def create_initial_tsne_models():
                       initial_tsne_parameters["runName"]))
     p.start()
 
-    # NEXT STEPS: xxx
-    #     6. Think about additional vis. next to quality pane.
-    #     7. PAELLA: Draw mockup.
-
     return "200"
 
 
