@@ -92,3 +92,4 @@ db_connector.set_tsne_quality_scores(
                 qvec_score=qm["qvec"],
                 tsne_id=tsne_model_id
             )
+

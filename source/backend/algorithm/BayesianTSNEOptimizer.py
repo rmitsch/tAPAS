@@ -55,7 +55,6 @@ class BayesianTSNEOptimizer:
         initialization_dataframe.drop(TSNEModel.ISFIXED_COLUMN_NAMES, inplace=True, axis=1)
 
         # Create initialization dictionary.
-
         initialization_dict = {
             column_name[3:-6]: initialization_dataframe[column_name[3:-6]].values.tolist()
             for column_name in TSNEModel.ISFIXED_COLUMN_NAMES
