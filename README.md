@@ -13,9 +13,9 @@ The first three measures were chosen in accord with [2].
 
 ![Generation of New Runs](https://raw.githubusercontent.com/rmitsch/tapas/master/doc/run_generation.png)
 
-_____
-
 <sup>1</sup>: In terms of neighbourhood ranks, not absolute distances.
+
+_____
 
 [1] Y. Tsvetkov, M. Faruqui, W. Ling, G. Lample, and C. Dyer, “Evaluation of Word Vector Representations by Subspace Alignment,” 2015, pp. 2049–2054.
 
