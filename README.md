@@ -18,5 +18,6 @@ _____
 <sup>1</sup>: In terms of neighbourhood ranks, not absolute distances.
 
 [1] Y. Tsvetkov, M. Faruqui, W. Ling, G. Lample, and C. Dyer, “Evaluation of Word Vector Representations by Subspace Alignment,” 2015, pp. 2049–2054.
+
 [2] L. J. P. van der Maaten, E. O. Postma, and H. J. van den Herik, Dimensionality Reduction: A Comparative Review. 2008.
  
