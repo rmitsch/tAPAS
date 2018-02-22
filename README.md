@@ -9,7 +9,7 @@ Bayesian optimization of hyperparameters for t-SNE in the context of word embedd
 
 The first three measures were chosen following [2].
 
-
+![Main View](https://raw.githubusercontent.com/rmitsch/tapas/master/doc/main.png)
 
 ![Generation of New Runs](https://raw.githubusercontent.com/rmitsch/tapas/master/doc/run_generation.png)
 
