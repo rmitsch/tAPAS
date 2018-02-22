@@ -7,9 +7,9 @@ Bayesian optimization of hyperparameters for t-SNE in the context of word embedd
 * Generalization: Generalization error of 1-nearest neighbour classifier (e. g. word embedding is clustered in high-dimensional and low-dimensional space - the higher the similarity between the cluster labels, the lower the generalization error).
 * Relative word embedding quality: QVEC [1] is used to evalute the intrinsic quality of the original word embedding and its dimensionality-reduced projection. The ratio is referred to as 'relative word embedding quality'.
 
-The first three measures were chosen in accord with [2].
+The first three measures were chosen following [2].
 
-![Main View](https://raw.githubusercontent.com/rmitsch/tapas/master/doc/main.png)
+
 
 ![Generation of New Runs](https://raw.githubusercontent.com/rmitsch/tapas/master/doc/run_generation.png)
 
